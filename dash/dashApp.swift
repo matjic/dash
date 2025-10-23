@@ -12,7 +12,7 @@ import SwiftData
 struct dashApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            DashItem.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -22,7 +22,11 @@ struct dashApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
+    init() {
+        // Additional initialization if needed
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
