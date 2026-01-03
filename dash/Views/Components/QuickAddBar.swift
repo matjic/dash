@@ -16,39 +16,67 @@ struct QuickAddBar: View {
     var body: some View {
         VStack(spacing: 0) {
             // Input Field
-            HStack(spacing: 12) {
-                TextField(
-                    "Search or add task/event...",
-                    text: $text
-                )
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .font(.body)
-                .frame(minHeight: 44) // Minimum touch target height
-                .focused($isTextFieldFocused)
-                .submitLabel(.done)
-                .onSubmit {
-                    if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        onAdd()
+            HStack(spacing: 16) {
+                // Spotlight-style pill textfield
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 20))
+                        .foregroundColor(.secondary)
+                    
+                    TextField(
+                        "Search or add task/event...",
+                        text: $text
+                    )
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 18))
+                    .focused($isTextFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            onAdd()
+                        }
+                    }
+                    .onChange(of: text) { _, newValue in
+                        onSearch(newValue)
+                    }
+                    
+                    if !text.isEmpty {
+                        Button(action: {
+                            text = ""
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
-                .onChange(of: text) { _, newValue in
-                    onSearch(newValue)
-                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .frame(height: 56)
+                .background(Color(.systemGray6))
+                .cornerRadius(28) // Large pill shape (height / 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28)
+                        .stroke(Color(.systemGray4), lineWidth: 0.5)
+                )
                 .onTapGesture {
                     isTextFieldFocused = true
                 }
                 
+                // Larger add button
                 Button(action: onAdd) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title)
+                        .font(.system(size: 36))
                         .foregroundColor(.blue)
-                        .frame(width: 44, height: 44) // Larger touch target
+                        .frame(width: 56, height: 56)
                 }
                 .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .buttonStyle(PlainButtonStyle())
+                .opacity(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1.0)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16) // Increased vertical padding
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
         }
         .background(Color(.systemBackground))
         .overlay(
