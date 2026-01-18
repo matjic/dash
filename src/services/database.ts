@@ -206,6 +206,228 @@ class DatabaseService {
       this.initialized = false;
     }
   }
+
+  /**
+   * Seed the database with sample data for screenshots.
+   * Call this from the browser console: window.seedDemoData()
+   */
+  async seedDemoData(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const now = new Date();
+    
+    // Helper to create dates relative to today
+    const daysFromNow = (days: number): string => {
+      const date = new Date(now);
+      date.setDate(date.getDate() + days);
+      return date.toISOString();
+    };
+
+    const sampleItems: DashItem[] = [
+      // Today's tasks
+      {
+        id: crypto.randomUUID(),
+        title: 'Review quarterly report',
+        notes: 'Check figures against last quarter projections',
+        createdDate: daysFromNow(-2),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(0),
+        priority: 'high',
+        tags: ['work'],
+        isRecurring: false,
+        hasReminder: true,
+        reminderDate: daysFromNow(0),
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Call mom',
+        notes: '',
+        createdDate: daysFromNow(-1),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(0),
+        priority: 'medium',
+        tags: ['personal'],
+        isRecurring: false,
+        hasReminder: false,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Pick up groceries',
+        notes: 'Milk, eggs, bread, avocados',
+        createdDate: daysFromNow(0),
+        location: 'Whole Foods',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: true,
+        dueDate: daysFromNow(0),
+        priority: 'low',
+        tags: ['errands'],
+        isRecurring: false,
+        hasReminder: false,
+      },
+      // Upcoming tasks
+      {
+        id: crypto.randomUUID(),
+        title: 'Dentist appointment',
+        notes: 'Regular checkup',
+        createdDate: daysFromNow(-5),
+        location: 'Downtown Dental',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(2),
+        priority: 'medium',
+        tags: ['health'],
+        isRecurring: false,
+        hasReminder: true,
+        reminderDate: daysFromNow(1),
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Submit expense report',
+        notes: '',
+        createdDate: daysFromNow(-3),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(3),
+        priority: 'high',
+        tags: ['work', 'finance'],
+        isRecurring: false,
+        hasReminder: false,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Finish reading book',
+        notes: 'Atomic Habits - last 3 chapters',
+        createdDate: daysFromNow(-10),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(5),
+        priority: 'low',
+        tags: ['personal'],
+        isRecurring: false,
+        hasReminder: false,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Weekly team sync',
+        notes: 'Prepare status update',
+        createdDate: daysFromNow(-7),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(1),
+        priority: 'medium',
+        tags: ['work'],
+        isRecurring: true,
+        recurrenceRule: 'weekly',
+        hasReminder: true,
+        reminderDate: daysFromNow(1),
+      },
+      // Events
+      {
+        id: crypto.randomUUID(),
+        title: 'Coffee with Sarah',
+        notes: 'Catch up about the new project',
+        createdDate: daysFromNow(-1),
+        location: 'Blue Bottle Coffee',
+        links: [],
+        photoPaths: [],
+        itemType: 'event',
+        isCompleted: false,
+        priority: 'none',
+        tags: ['social'],
+        isRecurring: false,
+        hasReminder: true,
+        reminderDate: daysFromNow(1),
+        eventDate: daysFromNow(1),
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Product launch meeting',
+        notes: 'Q2 roadmap presentation',
+        createdDate: daysFromNow(-4),
+        location: 'Conference Room A',
+        links: [],
+        photoPaths: [],
+        itemType: 'event',
+        isCompleted: false,
+        priority: 'none',
+        tags: ['work'],
+        isRecurring: false,
+        hasReminder: true,
+        reminderDate: daysFromNow(3),
+        eventDate: daysFromNow(4),
+        endDate: daysFromNow(4),
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Weekend hiking trip',
+        notes: 'Pack sunscreen and snacks',
+        createdDate: daysFromNow(-2),
+        location: 'Mount Tam',
+        links: [],
+        photoPaths: [],
+        itemType: 'event',
+        isCompleted: false,
+        priority: 'none',
+        tags: ['personal', 'outdoors'],
+        isRecurring: false,
+        hasReminder: false,
+        eventDate: daysFromNow(6),
+      },
+      // Overdue task for visual variety
+      {
+        id: crypto.randomUUID(),
+        title: 'Reply to client email',
+        notes: 'Regarding contract renewal',
+        createdDate: daysFromNow(-5),
+        location: '',
+        links: [],
+        photoPaths: [],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(-1),
+        priority: 'high',
+        tags: ['work'],
+        isRecurring: false,
+        hasReminder: false,
+      },
+    ];
+
+    // Clear existing data
+    await this.db.run(`DELETE FROM ${TABLE_NAME}`);
+
+    // Insert sample items
+    for (const item of sampleItems) {
+      await this.createItem(item);
+    }
+
+    console.log(`Seeded ${sampleItems.length} demo items`);
+  }
 }
 
 export const databaseService = new DatabaseService();
+
+// Expose seed function globally for easy access in simulator
+if (typeof window !== 'undefined') {
+  (window as any).seedDemoData = () => databaseService.seedDemoData();
+}
