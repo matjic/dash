@@ -220,15 +220,16 @@ test('should perform action', async ({ page }) => {
 ## Continuous Integration
 
 Tests run automatically on:
+- **GitHub Actions**: Every push to `main` and all pull requests
 - Pre-commit hooks (optional, not configured yet)
-- CI/CD pipelines (when set up)
 
-Configure in your CI:
-```yaml
-- run: npm install
-- run: npm run test:run
-- run: npm run test:e2e
-```
+The CI workflow (`.github/workflows/test.yml`) runs:
+1. Unit tests with coverage reporting
+2. E2E tests with Playwright
+3. TypeScript type checking
+4. Build verification
+
+All jobs run in parallel for fast feedback. Coverage reports and test artifacts are automatically uploaded for review.
 
 ## Coverage Goals
 
