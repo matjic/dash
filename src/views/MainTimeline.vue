@@ -1,20 +1,26 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <img :src="logoSrc" alt="Dash" class="header-logo" />
-        </ion-buttons>
-        <FilterTabs v-model="localFilter" />
-        <ion-buttons slot="end">
-          <ion-button fill="clear" @click="goToNewItem">
-            <ion-icon slot="icon-only" :icon="addOutline" />
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    <ion-content 
+      :scroll-y="true" 
+      class="main-content"
+      :scroll-events="true"
+      @ionScroll="onScroll"
+    >
+      <!-- Header -->
+      <div class="app-header">
+        <img 
+          :src="logoLight" 
+          alt="Dash" 
+          class="app-logo app-logo-light"
+        />
+        <img 
+          :src="logoDark" 
+          alt="Dash" 
+          class="app-logo app-logo-dark"
+        />
+        <h1 class="app-title">Dash</h1>
+      </div>
 
-    <ion-content :scroll-y="true" class="main-content">
       <!-- Loading state -->
       <div v-if="isLoading" class="loading-container">
         <ion-spinner name="crescent" />
@@ -24,7 +30,7 @@
       <div v-else-if="filteredItems.length === 0" class="empty-state">
         <ion-icon :icon="clipboardOutline" />
         <h2>No items yet</h2>
-        <p>Add a task using the input below or tap the + button</p>
+        <p>Add a task using the input below</p>
       </div>
 
       <!-- Items list -->
@@ -41,38 +47,39 @@
         />
       </ion-list>
       
-      <!-- Spacer for fixed search bar -->
-      <div class="search-bar-spacer"></div>
+      <!-- Spacer for floating elements -->
+      <div class="bottom-spacer"></div>
     </ion-content>
+
+    <!-- Floating filter bar -->
+    <div class="floating-filter" :class="{ 'filter-hidden': isFilterHidden }">
+      <FilterTabs v-model="localFilter" />
+    </div>
     
     <QuickAddBar />
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage,
-  IonHeader,
-  IonToolbar,
-  IonButtons,
   IonContent,
   IonList,
-  IonButton,
   IonIcon,
   IonSpinner,
   alertController,
 } from '@ionic/vue';
-import { addOutline, clipboardOutline } from 'ionicons/icons';
+import { clipboardOutline } from 'ionicons/icons';
+import logoLight from '../assets/dash_d_tight_light.svg';
+import logoDark from '../assets/dash_d_tight_dark.svg';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import FilterTabs from '../components/FilterTabs.vue';
 import ItemRow from '../components/ItemRow.vue';
 import QuickAddBar from '../components/QuickAddBar.vue';
 import { useItems, type FilterType } from '../composables/useItems';
 import type { DashItem } from '../models/DashItem';
-import logoLight from '../assets/dash_d_tight_light.svg';
-import logoDark from '../assets/dash_d_tight_dark.svg';
 
 const router = useRouter();
 const {
@@ -87,33 +94,42 @@ const {
 } = useItems();
 
 const localFilter = ref<FilterType>(selectedFilter.value);
-const isDarkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-const logoSrc = computed(() => isDarkMode.value ? logoDark : logoLight);
-
-// Listen for dark mode changes
-let darkModeQuery: MediaQueryList;
-function handleDarkModeChange(e: MediaQueryListEvent) {
-  isDarkMode.value = e.matches;
-}
-
-onMounted(() => {
-  darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  darkModeQuery.addEventListener('change', handleDarkModeChange);
-});
-
-onUnmounted(() => {
-  darkModeQuery?.removeEventListener('change', handleDarkModeChange);
-});
+const isFilterHidden = ref(false);
+let lastScrollTop = 0;
+let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Sync local state with global state
 watch(localFilter, (value) => {
   setFilter(value);
 });
 
-function goToNewItem() {
-  router.push('/item');
+function onScroll(event: CustomEvent) {
+  const scrollTop = event.detail.scrollTop;
+  const delta = scrollTop - lastScrollTop;
+  
+  // Hide filter when scrolling down, show when scrolling up
+  if (delta > 5 && scrollTop > 50) {
+    isFilterHidden.value = true;
+  } else if (delta < -5) {
+    isFilterHidden.value = false;
+  }
+  
+  lastScrollTop = scrollTop;
+  
+  // Show filter after scroll stops
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+  }
+  scrollTimeout = setTimeout(() => {
+    isFilterHidden.value = false;
+  }, 1500);
 }
+
+onUnmounted(() => {
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+  }
+});
 
 function goToItem(item: DashItem) {
   router.push(`/item/${item.id}`);
@@ -198,29 +214,95 @@ async function onConvertToTask(id: string) {
 .main-content {
   position: relative;
   z-index: 1;
+  --padding-top: calc(env(safe-area-inset-top) + 16px);
 }
 
-.search-bar-spacer {
-  height: calc(70px + env(safe-area-inset-bottom));
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px 16px;
+  padding-top: calc(env(safe-area-inset-top) + 8px);
+  margin-top: calc(-1 * env(safe-area-inset-top) - 16px);
+  gap: 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.header-logo {
-  height: 44px;
-  width: 44px;
-  border-radius: 10px;
-  margin-left: 12px;
+@media (prefers-color-scheme: dark) {
+  .app-header {
+    background-color: #0c0c0e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
-ion-header ion-toolbar {
-  --min-height: 88px;
+.app-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
 }
 
-ion-header ion-toolbar ion-buttons ion-button {
-  --padding-start: 12px;
-  --padding-end: 12px;
+/* Light mode: show light logo, hide dark logo */
+.app-logo-light {
+  display: block;
 }
 
-ion-header ion-toolbar ion-buttons ion-button ion-icon {
+.app-logo-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Dark mode: show dark logo, hide light logo */
+  .app-logo-light {
+    display: none;
+  }
+  
+  .app-logo-dark {
+    display: block;
+  }
+}
+
+.app-title {
   font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ion-text-color);
+}
+
+.bottom-spacer {
+  height: calc(130px + env(safe-area-inset-bottom));
+}
+
+.floating-filter {
+  position: fixed;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  
+  /* Pill shape */
+  border-radius: 22px;
+  padding: 4px;
+  
+  /* Liquid glass effect - Light mode */
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-filter {
+    background: rgba(60, 60, 60, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.floating-filter.filter-hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
 }
 </style>

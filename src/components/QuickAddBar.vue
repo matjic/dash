@@ -123,16 +123,24 @@ async function onAdd() {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #e5e5e7;
   border-radius: 27px;
   padding: 12px 16px;
   height: 54px;
   box-sizing: border-box;
+  
+  /* Liquid glass effect - Light mode */
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   .input-container {
-    background: #3a3a3c;
+    background: rgba(60, 60, 60, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
 }
 
