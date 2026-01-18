@@ -241,6 +241,15 @@ ion-badge {
   font-size: 10px;
 }
 
+/* Ensure consistent row height */
+ion-item {
+  --min-height: 60px;
+}
+
+ion-label {
+  margin: 12px 0;
+}
+
 /* Fix for iOS highlight appearing on wrong row when inside ion-item-sliding */
 ion-item {
   --background-activated: transparent;
