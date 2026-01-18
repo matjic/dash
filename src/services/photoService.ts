@@ -1,5 +1,6 @@
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import { v4 as uuidv4 } from 'uuid';
 
 const PHOTOS_DIR = 'photos';
@@ -101,7 +102,8 @@ class PhotoService {
         path,
         directory: Directory.Documents,
       });
-      return result.uri;
+      // Convert file:// URI to a format WebView can display
+      return Capacitor.convertFileSrc(result.uri);
     } catch (error) {
       console.error('Error getting photo URI:', error);
       return '';

@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
+    <ion-header>
       <ion-toolbar>
         <ion-title>Dash</ion-title>
         <ion-button slot="end" fill="clear" @click="goToNewItem">
@@ -8,26 +8,11 @@
         </ion-button>
       </ion-toolbar>
       <ion-toolbar>
-        <ion-searchbar
-          v-model="localSearchText"
-          placeholder="Search tasks and events..."
-          :debounce="250"
-          @ionInput="onSearchChange"
-        />
-      </ion-toolbar>
-      <ion-toolbar>
         <FilterTabs v-model="localFilter" />
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
-      <!-- iOS large title header -->
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Dash</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
+    <ion-content :scroll-y="true" class="main-content">
       <!-- Loading state -->
       <div v-if="isLoading" class="loading-container">
         <ion-spinner name="crescent" />
@@ -53,8 +38,11 @@
           @convert-to-task="onConvertToTask"
         />
       </ion-list>
+      
+      <!-- Spacer for fixed search bar -->
+      <div class="search-bar-spacer"></div>
     </ion-content>
-
+    
     <QuickAddBar />
   </ion-page>
 </template>
@@ -68,7 +56,6 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonSearchbar,
   IonList,
   IonButton,
   IonIcon,
@@ -87,9 +74,7 @@ const router = useRouter();
 const {
   filteredItems,
   isLoading,
-  searchText,
   selectedFilter,
-  setSearchText,
   setFilter,
   toggleComplete,
   deleteItem,
@@ -97,17 +82,12 @@ const {
   convertToTask,
 } = useItems();
 
-const localSearchText = ref(searchText.value);
 const localFilter = ref<FilterType>(selectedFilter.value);
 
 // Sync local state with global state
 watch(localFilter, (value) => {
   setFilter(value);
 });
-
-function onSearchChange(event: CustomEvent) {
-  setSearchText(event.detail.value || '');
-}
 
 function goToNewItem() {
   router.push('/item');
@@ -173,6 +153,8 @@ async function onConvertToTask(id: string) {
   padding: 20px;
   text-align: center;
   color: var(--ion-color-medium);
+  position: relative;
+  z-index: 1;
 }
 
 .empty-state ion-icon {
@@ -189,5 +171,14 @@ async function onConvertToTask(id: string) {
 .empty-state p {
   margin: 0;
   font-size: 14px;
+}
+
+.main-content {
+  position: relative;
+  z-index: 1;
+}
+
+.search-bar-spacer {
+  height: calc(70px + env(safe-area-inset-bottom));
 }
 </style>

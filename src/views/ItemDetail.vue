@@ -45,7 +45,7 @@
         <!-- Task-specific fields -->
         <template v-if="item.itemType === 'task'">
           <!-- Due Date -->
-          <ion-item button @click="showDueDatePicker = true">
+          <ion-item button @click="pickDueDate">
             <ion-label>Due Date</ion-label>
             <ion-text slot="end" color="medium">
               {{ item.dueDate ? formatDate(item.dueDate) : 'None' }}
@@ -88,7 +88,7 @@
             <ion-toggle v-model="item.hasReminder">Reminder</ion-toggle>
           </ion-item>
 
-          <ion-item v-if="item.hasReminder" button @click="showReminderPicker = true">
+          <ion-item v-if="item.hasReminder" button @click="pickReminderDate">
             <ion-label>Reminder Time</ion-label>
             <ion-text slot="end" color="medium">
               {{ item.reminderDate ? formatDate(item.reminderDate) : 'Select time' }}
@@ -99,7 +99,7 @@
         <!-- Event-specific fields -->
         <template v-if="item.itemType === 'event'">
           <!-- Event Date -->
-          <ion-item button @click="showEventDatePicker = true">
+          <ion-item button @click="pickEventDate">
             <ion-label>Start Date</ion-label>
             <ion-text slot="end" color="medium">
               {{ item.eventDate ? formatDate(item.eventDate) : 'Select date' }}
@@ -107,7 +107,7 @@
           </ion-item>
 
           <!-- End Date -->
-          <ion-item button @click="showEndDatePicker = true">
+          <ion-item button @click="pickEndDate">
             <ion-label>End Date</ion-label>
             <ion-text slot="end" color="medium">
               {{ item.endDate ? formatDate(item.endDate) : 'None' }}
@@ -221,103 +221,14 @@
         </ion-item>
       </ion-list>
 
-      <!-- Date Pickers (Modals) -->
-      <ion-modal :is-open="showDueDatePicker" @didDismiss="showDueDatePicker = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Due Date</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showDueDatePicker = false">Done</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-datetime
-            v-model="item.dueDate"
-            presentation="date-time"
-            :prefer-wheel="true"
-          />
-          <ion-button
-            expand="block"
-            fill="clear"
-            color="danger"
-            @click="item.dueDate = undefined; showDueDatePicker = false"
-          >
-            Clear Date
-          </ion-button>
-        </ion-content>
-      </ion-modal>
-
-      <ion-modal :is-open="showReminderPicker" @didDismiss="showReminderPicker = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Reminder</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showReminderPicker = false">Done</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-datetime
-            v-model="item.reminderDate"
-            presentation="date-time"
-            :prefer-wheel="true"
-            :min="new Date().toISOString()"
-          />
-        </ion-content>
-      </ion-modal>
-
-      <ion-modal :is-open="showEventDatePicker" @didDismiss="showEventDatePicker = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Event Date</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showEventDatePicker = false">Done</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-datetime
-            v-model="item.eventDate"
-            presentation="date-time"
-            :prefer-wheel="true"
-          />
-        </ion-content>
-      </ion-modal>
-
-      <ion-modal :is-open="showEndDatePicker" @didDismiss="showEndDatePicker = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>End Date</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showEndDatePicker = false">Done</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-datetime
-            v-model="item.endDate"
-            presentation="date-time"
-            :prefer-wheel="true"
-            :min="item.eventDate"
-          />
-          <ion-button
-            expand="block"
-            fill="clear"
-            color="danger"
-            @click="item.endDate = undefined; showEndDatePicker = false"
-          >
-            Clear Date
-          </ion-button>
-        </ion-content>
-      </ion-modal>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
+import { useIonRouter } from '@ionic/vue';
 import {
   IonPage,
   IonHeader,
@@ -340,11 +251,10 @@ import {
   IonIcon,
   IonText,
   IonChip,
-  IonModal,
-  IonDatetime,
   alertController,
   actionSheetController,
 } from '@ionic/vue';
+import { DatePicker } from '@capacitor-community/date-picker';
 import {
   checkmarkCircleOutline,
   calendarOutline,
@@ -361,32 +271,29 @@ import type { DashItem } from '../models/DashItem';
 import { createEmptyItem } from '../models/DashItem';
 
 const route = useRoute();
-const router = useRouter();
+const ionRouter = useIonRouter();
 const { items, createItem, updateItem } = useItems();
 
-const itemId = computed(() => route.params.id as string | undefined);
-const isEditing = computed(() => !!itemId.value);
+// Track the original item ID separately to handle editing state correctly
+const originalItemId = ref<string | undefined>(undefined);
+const isEditing = computed(() => !!originalItemId.value);
 
 const item = reactive<DashItem>(createEmptyItem());
 const photoUris = ref<Record<string, string>>({});
 
-// Date picker states
-const showDueDatePicker = ref(false);
-const showReminderPicker = ref(false);
-const showEventDatePicker = ref(false);
-const showEndDatePicker = ref(false);
-
 const canSave = computed(() => item.title.trim().length > 0);
 
 onMounted(async () => {
-  if (itemId.value) {
-    const existingItem = items.value.find((i) => i.id === itemId.value);
+  const paramId = route.params.id as string | undefined;
+  if (paramId) {
+    originalItemId.value = paramId;
+    const existingItem = items.value.find((i) => i.id === paramId);
     if (existingItem) {
       Object.assign(item, existingItem);
       await loadPhotoUris();
     } else {
       // Item not found, go back
-      router.back();
+      ionRouter.back();
     }
   }
 });
@@ -410,6 +317,84 @@ function formatDate(dateString: string): string {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+function getTheme(): 'light' | 'dark' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+async function pickDueDate() {
+  try {
+    const result = await DatePicker.present({
+      mode: 'dateAndTime',
+      date: item.dueDate ? new Date(item.dueDate).toISOString() : undefined,
+      theme: getTheme(),
+      ios: {
+        style: 'wheels',
+      },
+    });
+    if (result.value) {
+      item.dueDate = result.value;
+    }
+  } catch {
+    // User cancelled
+  }
+}
+
+async function pickReminderDate() {
+  try {
+    const result = await DatePicker.present({
+      mode: 'dateAndTime',
+      date: item.reminderDate ? new Date(item.reminderDate).toISOString() : undefined,
+      min: new Date().toISOString(),
+      theme: getTheme(),
+      ios: {
+        style: 'wheels',
+      },
+    });
+    if (result.value) {
+      item.reminderDate = result.value;
+    }
+  } catch {
+    // User cancelled
+  }
+}
+
+async function pickEventDate() {
+  try {
+    const result = await DatePicker.present({
+      mode: 'dateAndTime',
+      date: item.eventDate ? new Date(item.eventDate).toISOString() : undefined,
+      theme: getTheme(),
+      ios: {
+        style: 'wheels',
+      },
+    });
+    if (result.value) {
+      item.eventDate = result.value;
+    }
+  } catch {
+    // User cancelled
+  }
+}
+
+async function pickEndDate() {
+  try {
+    const result = await DatePicker.present({
+      mode: 'dateAndTime',
+      date: item.endDate ? new Date(item.endDate).toISOString() : undefined,
+      min: item.eventDate || undefined,
+      theme: getTheme(),
+      ios: {
+        style: 'wheels',
+      },
+    });
+    if (result.value) {
+      item.endDate = result.value;
+    }
+  } catch {
+    // User cancelled
+  }
 }
 
 function onTypeChange() {
@@ -544,7 +529,7 @@ async function removePhoto(index: number) {
 }
 
 function onCancel() {
-  router.back();
+  ionRouter.back();
 }
 
 async function onSave() {
@@ -553,13 +538,14 @@ async function onSave() {
   await Haptics.impact({ style: ImpactStyle.Light });
 
   try {
-    if (isEditing.value) {
-      await updateItem(item as DashItem);
+    if (isEditing.value && originalItemId.value) {
+      // Ensure we're updating with the original ID
+      await updateItem({ ...item, id: originalItemId.value } as DashItem);
     } else {
       await createItem(item as Omit<DashItem, 'id' | 'createdDate'>);
     }
 
-    router.back();
+    ionRouter.back();
   } catch (error) {
     console.error('Error saving item:', error);
     
@@ -613,9 +599,5 @@ ion-chip {
   right: 0;
   --padding-start: 4px;
   --padding-end: 4px;
-}
-
-ion-datetime {
-  width: 100%;
 }
 </style>

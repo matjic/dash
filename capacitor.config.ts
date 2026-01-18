@@ -5,9 +5,13 @@ const config: CapacitorConfig = {
   appName: 'Dash',
   webDir: 'dist',
   ios: {
-    contentInset: 'always',
+    contentInset: 'never',
   },
   plugins: {
+    Keyboard: {
+      resize: 'none',
+      resizeOnFullScreen: false,
+    },
     LocalNotifications: {
       smallIcon: 'ic_stat_icon_default',
       iconColor: '#488AFF',

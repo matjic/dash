@@ -240,4 +240,22 @@ ion-badge {
   margin-left: 4px;
   font-size: 10px;
 }
+
+/* Fix for iOS highlight appearing on wrong row when inside ion-item-sliding */
+ion-item {
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --background-hover: transparent;
+  --ripple-color: transparent;
+}
+
+ion-item.ion-activated {
+  --background: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-item.ion-activated {
+    --background: rgba(255, 255, 255, 0.1);
+  }
+}
 </style>

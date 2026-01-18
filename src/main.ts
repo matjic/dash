@@ -28,6 +28,8 @@ import './theme/variables.css';
 const app = createApp(App)
   .use(IonicVue, {
     mode: 'ios', // Force iOS styling
+    scrollAssist: false, // Disable automatic scroll when keyboard opens
+    scrollPadding: false, // Don't add padding when keyboard opens
   })
   .use(router);
 

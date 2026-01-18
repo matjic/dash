@@ -13,12 +13,14 @@
     "ios:run": "npm run build && npx cap sync ios && npx cap run ios"
   },
   "dependencies": {
+    "@capacitor-community/date-picker": "^7.1.0",
     "@capacitor-community/sqlite": "^7.0.3",
     "@capacitor/camera": "^8.0.0",
     "@capacitor/core": "^8.0.1",
     "@capacitor/filesystem": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.1",
+    "@capacitor/keyboard": "^8.0.0",
     "@capacitor/local-notifications": "^8.0.0",
     "@ionic/vue": "^8.7.17",
     "@ionic/vue-router": "^8.7.17",
