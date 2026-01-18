@@ -138,11 +138,20 @@ Active plugins:
 1. Run `npm run build` to check TypeScript and build
 2. Run `npm run ios:sync` to sync to iOS
 3. Test in Xcode simulator or on device
+4. **Update `README.md` if applicable** when you:
+   - Add new features or capabilities
+   - Change development commands or workflows
+   - Add/remove dependencies or plugins
+   - Modify project structure
+   - Update setup/installation steps
 
 ## Important Files to Know
 
 | File | Purpose |
 |------|---------|
+| `README.md` | User and developer documentation |
+| `AGENTS.md` | This file - agent/contributor guidance |
+| `TESTING.md` | Testing strategy and guidelines |
 | `spec.md` | Comprehensive feature specification |
 | `capacitor.config.ts` | App ID, plugins, native settings |
 | `src/services/database.ts` | All database operations |
