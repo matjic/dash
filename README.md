@@ -1,6 +1,10 @@
-# Dash
+<p align="center">
+  <img src="logo.png" alt="Dash Logo" width="120" height="120">
+</p>
 
-A unified task and event tracking application with natural language quick-capture capabilities for iOS.
+<h1 align="center">Dash</h1>
+
+<p align="center">A unified task and event tracking application with natural language quick-capture capabilities for iOS.</p>
 
 ## Overview
 
@@ -8,6 +12,17 @@ A unified task and event tracking application with natural language quick-captur
 
 **App ID**: `co.matj.dash`  
 **Platform**: iOS (native via Capacitor)
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/timeline-view.png" alt="Timeline View" width="250">
+  &nbsp;&nbsp;
+  <img src="screenshots/item-detail.png" alt="Item Detail" width="250">
+</p>
+<p align="center">
+  <em>Timeline View &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Detail View</em>
+</p>
 
 ## Features
 
