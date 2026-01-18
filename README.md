@@ -16,12 +16,12 @@
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/timeline-view.png" alt="Timeline View" width="250">
+  <img src="screenshots/timeline-view.png" alt="Timeline View - Light Mode" width="250">
   &nbsp;&nbsp;
-  <img src="screenshots/item-detail.png" alt="Item Detail" width="250">
+  <img src="screenshots/timeline-dark.png" alt="Timeline View - Dark Mode" width="250">
 </p>
 <p align="center">
-  <em>Timeline View &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Detail View</em>
+  <em>Light Mode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dark Mode</em>
 </p>
 
 ## Features
