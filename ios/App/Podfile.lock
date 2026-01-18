@@ -1,6 +1,8 @@
 PODS:
   - Capacitor (8.0.1):
     - CapacitorCordova
+  - CapacitorBrowser (8.0.0):
+    - Capacitor
   - CapacitorCamera (8.0.0):
     - Capacitor
   - CapacitorCommunityDatePicker (7.1.0):
@@ -19,6 +21,8 @@ PODS:
     - Capacitor
   - CapacitorLocalNotifications (8.0.0):
     - Capacitor
+  - CapacitorShare (8.0.0):
+    - Capacitor
   - IONFilesystemLib (1.0.1)
   - SQLCipher (4.10.0):
     - SQLCipher/standard (= 4.10.0)
@@ -29,6 +33,7 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCommunityDatePicker (from `../../node_modules/@capacitor-community/date-picker`)"
   - "CapacitorCommunitySqlite (from `../../node_modules/@capacitor-community/sqlite`)"
@@ -37,6 +42,7 @@ DEPENDENCIES:
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
 
 SPEC REPOS:
   trunk:
@@ -47,6 +53,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
   CapacitorCamera:
     :path: "../../node_modules/@capacitor/camera"
   CapacitorCommunityDatePicker:
@@ -63,9 +71,12 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorLocalNotifications:
     :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorShare:
+    :path: "../../node_modules/@capacitor/share"
 
 SPEC CHECKSUMS:
   Capacitor: ff35b0f66370b84aa238251b35b91886a3207c16
+  CapacitorBrowser: b7d7f05f840fe042e46f6528bb8db853e3058fb2
   CapacitorCamera: 592acb7ab9fb748e2d8571eb03af30ec4e1ace12
   CapacitorCommunityDatePicker: 2153830f945bde877aead4ecafc0db448f831b3e
   CapacitorCommunitySqlite: 4813d82ad33001e612a39d313cb5d28066cbafda
@@ -74,10 +85,11 @@ SPEC CHECKSUMS:
   CapacitorHaptics: 2079d9fa04c5a71e18663b4722323c304c58245c
   CapacitorKeyboard: d7868c079a4d5277a3deca27a10a488fcbbb8b69
   CapacitorLocalNotifications: 177cfbf8228d9bd82a147e094cb7984d7afb9e29
+  CapacitorShare: 12f1d192170cbcf9f108fd675ac8e343761a4638
   IONFilesystemLib: 89258b8e3e85465da93127d25d7ce37f977e8a6f
   SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 9cc41546c89e97d602125e3ced805d2c45a6baba
+PODFILE CHECKSUM: 61b8637e933d7e3ad0624efd70be7644d61186b2
 
 COCOAPODS: 1.16.2

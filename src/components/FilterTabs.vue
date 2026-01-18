@@ -28,3 +28,21 @@ function onChange(event: CustomEvent) {
   emit('update:modelValue', event.detail.value as FilterType);
 }
 </script>
+
+<style scoped>
+ion-segment {
+  --background: var(--ion-color-light);
+  min-height: 36px;
+}
+
+ion-segment-button {
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  min-height: 36px;
+}
+
+ion-segment-button ion-label {
+  font-size: 15px;
+  font-weight: 500;
+}
+</style>

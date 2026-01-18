@@ -1,6 +1,7 @@
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 import { v4 as uuidv4 } from 'uuid';
 
 const PHOTOS_DIR = 'photos';
@@ -107,6 +108,52 @@ class PhotoService {
     } catch (error) {
       console.error('Error getting photo URI:', error);
       return '';
+    }
+  }
+
+  /**
+   * Get the native file:// URI for sharing (not converted for WebView)
+   */
+  async getPhotoFileUri(path: string): Promise<string> {
+    const result = await Filesystem.getUri({
+      path,
+      directory: Directory.Documents,
+    });
+    return result.uri;
+  }
+
+  /**
+   * Share a single photo using the native share sheet
+   */
+  async sharePhoto(path: string): Promise<void> {
+    try {
+      const fileUri = await this.getPhotoFileUri(path);
+      await Share.share({
+        url: fileUri,
+      });
+    } catch (error) {
+      console.error('Error sharing photo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Share multiple photos using the native share sheet
+   */
+  async sharePhotos(paths: string[]): Promise<void> {
+    if (paths.length === 0) return;
+
+    try {
+      const fileUris = await Promise.all(
+        paths.map((path) => this.getPhotoFileUri(path))
+      );
+
+      await Share.share({
+        files: fileUris,
+      });
+    } catch (error) {
+      console.error('Error sharing photos:', error);
+      throw error;
     }
   }
 }

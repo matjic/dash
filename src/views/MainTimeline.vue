@@ -2,13 +2,15 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Dash</ion-title>
-        <ion-button slot="end" fill="clear" @click="goToNewItem">
-          <ion-icon slot="icon-only" :icon="addOutline" />
-        </ion-button>
-      </ion-toolbar>
-      <ion-toolbar>
+        <ion-buttons slot="start">
+          <img :src="logoSrc" alt="Dash" class="header-logo" />
+        </ion-buttons>
         <FilterTabs v-model="localFilter" />
+        <ion-buttons slot="end">
+          <ion-button fill="clear" @click="goToNewItem">
+            <ion-icon slot="icon-only" :icon="addOutline" />
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
@@ -48,13 +50,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage,
   IonHeader,
   IonToolbar,
-  IonTitle,
+  IonButtons,
   IonContent,
   IonList,
   IonButton,
@@ -69,6 +71,8 @@ import ItemRow from '../components/ItemRow.vue';
 import QuickAddBar from '../components/QuickAddBar.vue';
 import { useItems, type FilterType } from '../composables/useItems';
 import type { DashItem } from '../models/DashItem';
+import logoLight from '../assets/dash_d_tight_light.svg';
+import logoDark from '../assets/dash_d_tight_dark.svg';
 
 const router = useRouter();
 const {
@@ -83,6 +87,24 @@ const {
 } = useItems();
 
 const localFilter = ref<FilterType>(selectedFilter.value);
+const isDarkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+const logoSrc = computed(() => isDarkMode.value ? logoDark : logoLight);
+
+// Listen for dark mode changes
+let darkModeQuery: MediaQueryList;
+function handleDarkModeChange(e: MediaQueryListEvent) {
+  isDarkMode.value = e.matches;
+}
+
+onMounted(() => {
+  darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  darkModeQuery.addEventListener('change', handleDarkModeChange);
+});
+
+onUnmounted(() => {
+  darkModeQuery?.removeEventListener('change', handleDarkModeChange);
+});
 
 // Sync local state with global state
 watch(localFilter, (value) => {
@@ -180,5 +202,25 @@ async function onConvertToTask(id: string) {
 
 .search-bar-spacer {
   height: calc(70px + env(safe-area-inset-bottom));
+}
+
+.header-logo {
+  height: 44px;
+  width: 44px;
+  border-radius: 10px;
+  margin-left: 12px;
+}
+
+ion-header ion-toolbar {
+  --min-height: 88px;
+}
+
+ion-header ion-toolbar ion-buttons ion-button {
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+ion-header ion-toolbar ion-buttons ion-button ion-icon {
+  font-size: 28px;
 }
 </style>
