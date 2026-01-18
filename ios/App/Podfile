@@ -14,7 +14,7 @@ def capacitor_pods
   pod 'CapacitorShare', :path => '../../node_modules/@capacitor/share'
 end
 
-target 'App' do
+target 'Dash' do
   use_frameworks!
   capacitor_pods
 end

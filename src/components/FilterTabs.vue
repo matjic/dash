@@ -31,7 +31,6 @@ function onChange(event: CustomEvent) {
 
 <style scoped>
 ion-segment {
-  --background: var(--ion-color-light);
   min-height: 36px;
 }
 
