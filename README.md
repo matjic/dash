@@ -59,6 +59,7 @@
 |-------|------------|
 | **UI Framework** | Ionic Vue 8 (iOS-style components) |
 | **Frontend** | Vue 3 (Composition API + TypeScript) |
+| **Runtime** | Bun |
 | **Native Runtime** | Capacitor 8 |
 | **Database** | @capacitor-community/sqlite |
 | **NLP** | chrono-node (date parsing) |
@@ -69,8 +70,7 @@
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (LTS version recommended)
-- **npm** (comes with Node.js)
+- **Bun** (install from [bun.sh](https://bun.sh))
 - **Xcode** (for iOS development)
 - **iOS Simulator** or a physical iOS device for testing
 
@@ -84,51 +84,51 @@ git clone https://github.com/yourusername/dash.git
 cd dash
 
 # Install dependencies
-npm install
+bun install
 
 # Sync the iOS project
-npx cap sync ios
+bunx cap sync ios
 ```
 
 ### Development
 
 ```bash
 # Start the development server (web preview)
-npm run dev
+bun run dev
 
 # Build the app
-npm run build
+bun run build
 
 # Open in Xcode
-npm run ios
+bun run ios
 
 # Build, sync, and open in Xcode (full workflow)
-npm run ios
+bun run ios
 
 # Build, sync, and run on device/simulator
-npm run ios:run
+bun run ios:run
 
 # Just sync changes to iOS (after building)
-npm run ios:sync
+bun run ios:sync
 ```
 
 ### Testing
 
 ```bash
 # Run unit tests (watch mode)
-npm test
+bun test
 
 # Run all tests once
-npm run test:run
+bun run test:run
 
 # Run tests with coverage
-npm run test:coverage
+bun run test:coverage
 
 # Run E2E tests
-npm run test:e2e
+bun run test:e2e
 
 # Run E2E tests with UI
-npm run test:e2e:ui
+bun run test:e2e:ui
 ```
 
 **Test Coverage**: 154 tests across 8 test files covering services, models, composables, components, and E2E workflows. See [TESTING.md](TESTING.md) for detailed testing documentation.
@@ -248,12 +248,12 @@ The quick-capture bar supports natural language input:
 
 ### Making Changes
 1. Make code changes in `src/`
-2. Run `npm run build` to verify TypeScript
-3. Run `npm run test:run` to verify tests pass
-4. Run `npm run ios:sync` to sync to iOS project
+2. Run `bun run build` to verify TypeScript
+3. Run `bun run test:run` to verify tests pass
+4. Run `bun run ios:sync` to sync to iOS project
 5. Test in Xcode simulator or on device
 
-**Important**: Always run `npm run ios:sync` after changes to ensure the iOS project is updated.
+**Important**: Always run `bun run ios:sync` after changes to ensure the iOS project is updated.
 
 ## Capacitor Plugins
 
@@ -270,8 +270,8 @@ The app uses these Capacitor plugins:
 ### Adding a New Plugin
 
 ```bash
-npm install @capacitor/plugin-name
-npx cap sync ios
+bun add @capacitor/plugin-name
+bunx cap sync ios
 ```
 
 ## Documentation

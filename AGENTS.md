@@ -19,6 +19,7 @@ This document provides guidance for AI agents working on the Dash codebase.
 | UI Framework | Ionic Vue 8 |
 | Frontend | Vue 3 (Composition API) |
 | Language | TypeScript |
+| Runtime | Bun |
 | Native Runtime | Capacitor 8 |
 | Database | @capacitor-community/sqlite |
 | NLP | chrono-node (date parsing) |
@@ -67,15 +68,19 @@ dash/
 
 ```bash
 # Development
-npm run dev          # Start Vite dev server
+bun run dev          # Start Vite dev server
 
 # Build
-npm run build        # TypeScript check + Vite build
+bun run build        # TypeScript check + Vite build
 
 # iOS
-npm run ios          # Build + sync + open Xcode
-npm run ios:sync     # Build + sync to iOS project
-npm run ios:run      # Build + sync + run on device/simulator
+bun run ios          # Build + sync + open Xcode
+bun run ios:sync     # Build + sync to iOS project
+bun run ios:run      # Build + sync + run on device/simulator
+
+# Testing
+bun run test         # Run tests in watch mode
+bun run test:run     # Run tests once
 ```
 
 ## Data Model
@@ -128,15 +133,15 @@ Active plugins:
 
 - Native project is in `ios/App/`
 - App icons support light/dark mode variants
-- Run `npx cap sync ios` after changing Capacitor config or plugins
-- Open Xcode with `npx cap open ios`
+- Run `bunx cap sync ios` after changing Capacitor config or plugins
+- Open Xcode with `bunx cap open ios`
 
 ## Testing Changes
 
-**IMPORTANT:** Always run `npm run ios:sync` after making any changes to ensure the iOS project is updated.
+**IMPORTANT:** Always run `bun run ios:sync` after making any changes to ensure the iOS project is updated.
 
-1. Run `npm run build` to check TypeScript and build
-2. Run `npm run ios:sync` to sync to iOS
+1. Run `bun run build` to check TypeScript and build
+2. Run `bun run ios:sync` to sync to iOS
 3. Test in Xcode simulator or on device
 4. **Update `README.md` if applicable** when you:
    - Add new features or capabilities
@@ -164,8 +169,8 @@ Active plugins:
 ### Adding a new Capacitor plugin
 
 ```bash
-npm install @capacitor/plugin-name
-npx cap sync ios
+bun add @capacitor/plugin-name
+bunx cap sync ios
 ```
 
 ### Modifying the app icon
