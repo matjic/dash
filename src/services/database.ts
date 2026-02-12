@@ -276,9 +276,15 @@ class DatabaseService {
         notes: 'Check figures against last quarter projections',
         createdDate: daysFromNow(-2),
         location: '',
-        links: [],
+        links: ['https://docs.google.com/spreadsheets/d/quarterly-report'],
         photoPaths: [],
-        comments: [],
+        comments: [
+          {
+            id: crypto.randomUUID(),
+            text: 'Numbers look good, need to verify Q3 projections',
+            createdDate: daysFromNow(-1),
+          },
+        ],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -302,7 +308,8 @@ class DatabaseService {
         dueDate: daysFromNow(0),
         priority: 'medium',
         tags: ['personal'],
-        isRecurring: false,
+        isRecurring: true,
+        recurrenceRule: 'weekly',
         hasReminder: false,
       },
       {
@@ -347,7 +354,7 @@ class DatabaseService {
         notes: '',
         createdDate: daysFromNow(-3),
         location: '',
-        links: [],
+        links: ['https://expense.company.com/submit', 'https://docs.company.com/expense-policy'],
         photoPaths: [],
         comments: [],
         itemType: 'task',
@@ -364,9 +371,20 @@ class DatabaseService {
         notes: 'Atomic Habits - last 3 chapters',
         createdDate: daysFromNow(-10),
         location: '',
-        links: [],
+        links: ['https://jamesclear.com/atomic-habits'],
         photoPaths: [],
-        comments: [],
+        comments: [
+          {
+            id: crypto.randomUUID(),
+            text: 'Chapter 15 has great insights on habit stacking',
+            createdDate: daysFromNow(-5),
+          },
+          {
+            id: crypto.randomUUID(),
+            text: 'Remember to take notes on the 4 laws of behavior change',
+            createdDate: daysFromNow(-3),
+          },
+        ],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(5),
@@ -377,22 +395,47 @@ class DatabaseService {
       },
       {
         id: crypto.randomUUID(),
-        title: 'Weekly team sync',
-        notes: 'Prepare status update',
-        createdDate: daysFromNow(-7),
+        title: 'Daily standup',
+        notes: 'Quick sync with the team',
+        createdDate: daysFromNow(-14),
         location: '',
-        links: [],
+        links: ['https://meet.google.com/abc-defg-hij'],
         photoPaths: [],
         comments: [],
         itemType: 'task',
         isCompleted: false,
-        dueDate: daysFromNow(1),
+        dueDate: daysFromNow(0),
         priority: 'medium',
         tags: ['work'],
         isRecurring: true,
-        recurrenceRule: 'weekly',
+        recurrenceRule: 'daily',
         hasReminder: true,
-        reminderDate: daysFromNow(1),
+        reminderDate: daysFromNow(0),
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Monthly budget review',
+        notes: 'Review spending and update budget categories',
+        createdDate: daysFromNow(-30),
+        location: '',
+        links: ['https://mint.com', 'https://docs.google.com/spreadsheets/d/budget-2026'],
+        photoPaths: [],
+        comments: [
+          {
+            id: crypto.randomUUID(),
+            text: 'Need to allocate more for groceries this month',
+            createdDate: daysFromNow(-2),
+          },
+        ],
+        itemType: 'task',
+        isCompleted: false,
+        dueDate: daysFromNow(7),
+        priority: 'medium',
+        tags: ['finance', 'personal'],
+        isRecurring: true,
+        recurrenceRule: 'monthly',
+        hasReminder: true,
+        reminderDate: daysFromNow(6),
       },
       // Events
       {
@@ -401,9 +444,15 @@ class DatabaseService {
         notes: 'Catch up about the new project',
         createdDate: daysFromNow(-1),
         location: 'Blue Bottle Coffee',
-        links: [],
+        links: ['https://maps.google.com/?q=Blue+Bottle+Coffee'],
         photoPaths: [],
-        comments: [],
+        comments: [
+          {
+            id: crypto.randomUUID(),
+            text: 'Sarah mentioned she wants to discuss the marketing strategy',
+            createdDate: daysFromNow(-1),
+          },
+        ],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -419,9 +468,20 @@ class DatabaseService {
         notes: 'Q2 roadmap presentation',
         createdDate: daysFromNow(-4),
         location: 'Conference Room A',
-        links: [],
+        links: ['https://zoom.us/j/123456789', 'https://slides.google.com/d/q2-roadmap'],
         photoPaths: [],
-        comments: [],
+        comments: [
+          {
+            id: crypto.randomUUID(),
+            text: 'Confirmed with marketing team',
+            createdDate: daysFromNow(-3),
+          },
+          {
+            id: crypto.randomUUID(),
+            text: 'Added slides link for remote attendees',
+            createdDate: daysFromNow(-1),
+          },
+        ],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -438,7 +498,7 @@ class DatabaseService {
         notes: 'Pack sunscreen and snacks',
         createdDate: daysFromNow(-2),
         location: 'Mount Tam',
-        links: [],
+        links: ['https://alltrails.com/trail/mount-tam', 'https://weather.com/mount-tam'],
         photoPaths: [],
         comments: [],
         itemType: 'event',
@@ -483,7 +543,20 @@ class DatabaseService {
 
 export const databaseService = new DatabaseService();
 
+// Callback to refresh UI after seeding (set by useItems composable)
+let onSeedComplete: (() => Promise<void>) | null = null;
+
+export function setOnSeedComplete(callback: () => Promise<void>): void {
+  onSeedComplete = callback;
+}
+
 // Expose seed function globally for easy access in simulator
 if (typeof window !== 'undefined') {
-  (window as any).seedDemoData = () => databaseService.seedDemoData();
+  (window as any).seedDemoData = async () => {
+    await databaseService.seedDemoData();
+    if (onSeedComplete) {
+      await onSeedComplete();
+      console.log('UI refreshed');
+    }
+  };
 }

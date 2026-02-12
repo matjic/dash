@@ -2,7 +2,7 @@ import { ref, computed } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import type { DashItem } from '../models/DashItem';
 import { getRelevantDate } from '../models/DashItem';
-import { databaseService } from '../services/database';
+import { databaseService, setOnSeedComplete } from '../services/database';
 import { notificationService } from '../services/notificationService';
 import { recurrenceService } from '../services/recurrenceService';
 import { photoService } from '../services/photoService';
@@ -89,6 +89,9 @@ export function useItems() {
       await databaseService.initialize();
       await photoService.initialize();
       await loadItems();
+      
+      // Register callback to refresh UI after seeding demo data
+      setOnSeedComplete(loadItems);
       
       // Load showCompleted preference
       const showCompletedPref = await databaseService.getPreference(SHOW_COMPLETED_KEY);
