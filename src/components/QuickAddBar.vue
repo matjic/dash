@@ -106,6 +106,7 @@ async function onAdd() {
       tags: [],
       links: [],
       photoPaths: [],
+      comments: [],
     });
 
     // Clear both local and global search

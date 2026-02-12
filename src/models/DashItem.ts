@@ -2,6 +2,14 @@ export type ItemType = 'task' | 'event';
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 export type RecurrenceRule = 'daily' | 'weekly' | 'monthly';
 
+export interface Comment {
+  id: string;
+  text: string;
+  imagePath?: string;
+  createdDate: string;
+  updatedDate?: string;
+}
+
 export interface DashItem {
   id: string;
   title: string;
@@ -10,6 +18,7 @@ export interface DashItem {
   location?: string;
   links: string[];
   photoPaths: string[];
+  comments: Comment[];
   itemType: ItemType;
 
   // Task-specific
@@ -47,6 +56,7 @@ export function createEmptyItem(type: ItemType = 'task'): DashItem {
     location: '',
     links: [],
     photoPaths: [],
+    comments: [],
     itemType: type,
     isCompleted: false,
     priority: 'none',

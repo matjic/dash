@@ -164,6 +164,41 @@
             </ion-item>
           </template>
 
+          <!-- Comments -->
+          <ion-item-divider>
+            <ion-label>Comments</ion-label>
+            <ion-button slot="end" fill="clear" size="small" @click="showAddComment">
+              <ion-icon slot="icon-only" :icon="chatbubbleOutline" />
+            </ion-button>
+          </ion-item-divider>
+          <template v-if="item.comments && item.comments.length > 0">
+            <ion-item v-for="comment in item.comments" :key="comment.id" lines="full" class="comment-item">
+              <ion-label class="ion-text-wrap">
+                <p class="comment-date">
+                  {{ formatCommentDate(comment.createdDate) }}
+                  <span v-if="comment.updatedDate" class="edited-badge">(edited)</span>
+                </p>
+                <div class="comment-text">
+                  <RichText :text="comment.text" />
+                </div>
+                <div v-if="comment.imagePath" class="comment-image" @click="viewCommentPhoto(comment.imagePath)">
+                  <img :src="commentPhotoUris[comment.imagePath]" />
+                </div>
+              </ion-label>
+              <ion-buttons slot="end">
+                <ion-button fill="clear" size="small" @click="showEditComment(comment)">
+                  <ion-icon slot="icon-only" :icon="createOutline" color="primary" />
+                </ion-button>
+                <ion-button fill="clear" size="small" @click="confirmDeleteComment(comment)">
+                  <ion-icon slot="icon-only" :icon="trashOutline" color="danger" />
+                </ion-button>
+              </ion-buttons>
+            </ion-item>
+          </template>
+          <ion-item v-else lines="none">
+            <ion-label color="medium">No comments</ion-label>
+          </ion-item>
+
           <!-- Actions -->
           <template v-if="canGenerateCalendarLink(item)">
             <ion-item-divider>
@@ -384,6 +419,41 @@
           <ion-item v-else>
             <ion-label color="medium">No photos</ion-label>
           </ion-item>
+
+          <!-- Comments -->
+          <ion-item-divider>
+            <ion-label>Comments</ion-label>
+            <ion-button slot="end" fill="clear" size="small" @click="showAddComment">
+              <ion-icon slot="icon-only" :icon="chatbubbleOutline" />
+            </ion-button>
+          </ion-item-divider>
+          <template v-if="item.comments && item.comments.length > 0">
+            <ion-item v-for="comment in item.comments" :key="comment.id" lines="full" class="comment-item">
+              <ion-label class="ion-text-wrap">
+                <p class="comment-date">
+                  {{ formatCommentDate(comment.createdDate) }}
+                  <span v-if="comment.updatedDate" class="edited-badge">(edited)</span>
+                </p>
+                <div class="comment-text">
+                  <RichText :text="comment.text" />
+                </div>
+                <div v-if="comment.imagePath" class="comment-image" @click="viewCommentPhoto(comment.imagePath)">
+                  <img :src="commentPhotoUris[comment.imagePath]" />
+                </div>
+              </ion-label>
+              <ion-buttons slot="end">
+                <ion-button fill="clear" size="small" @click="showEditComment(comment)">
+                  <ion-icon slot="icon-only" :icon="createOutline" color="primary" />
+                </ion-button>
+                <ion-button fill="clear" size="small" @click="confirmDeleteComment(comment)">
+                  <ion-icon slot="icon-only" :icon="trashOutline" color="danger" />
+                </ion-button>
+              </ion-buttons>
+            </ion-item>
+          </template>
+          <ion-item v-else>
+            <ion-label color="medium">No comments</ion-label>
+          </ion-item>
         </ion-list>
       </template>
     </ion-content>
@@ -443,14 +513,17 @@ import {
   locationOutline,
   openOutline,
   logoGoogle,
+  chatbubbleOutline,
+  createOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { AppLauncher } from '@capacitor/app-launcher';
+import { v4 as uuidv4 } from 'uuid';
 import { useItems } from '../composables/useItems';
 import { photoService } from '../services/photoService';
 import { openLink } from '../services/linkService';
 import { generateGoogleCalendarLink, canGenerateCalendarLink } from '../services/calendarLinkService';
-import type { DashItem } from '../models/DashItem';
+import type { DashItem, Comment } from '../models/DashItem';
 import { createEmptyItem } from '../models/DashItem';
 import RichText from '../components/RichText.vue';
 import PhotoViewer from '../components/PhotoViewer.vue';
@@ -469,6 +542,7 @@ const isViewMode = ref(true);
 const item = reactive<DashItem>(createEmptyItem());
 const originalItemSnapshot = ref<DashItem | null>(null);
 const photoUris = ref<Record<string, string>>({});
+const commentPhotoUris = ref<Record<string, string>>({});
 
 // Photo viewer state
 const isPhotoViewerOpen = ref(false);
@@ -508,6 +582,7 @@ onMounted(async () => {
       originalItemSnapshot.value = JSON.parse(JSON.stringify(existingItem));
       isViewMode.value = true; // Existing items start in view mode
       await loadPhotoUris();
+      await loadCommentPhotoUris();
     } else {
       // Item not found, go back
       ionRouter.back();
@@ -519,11 +594,21 @@ onMounted(async () => {
 });
 
 watch(() => item.photoPaths, loadPhotoUris, { deep: true });
+watch(() => item.comments, loadCommentPhotoUris, { deep: true });
 
 async function loadPhotoUris() {
   for (const path of item.photoPaths) {
     if (!photoUris.value[path]) {
       photoUris.value[path] = await photoService.getPhotoUri(path);
+    }
+  }
+}
+
+async function loadCommentPhotoUris() {
+  if (!item.comments) return;
+  for (const comment of item.comments) {
+    if (comment.imagePath && !commentPhotoUris.value[comment.imagePath]) {
+      commentPhotoUris.value[comment.imagePath] = await photoService.getPhotoUri(comment.imagePath);
     }
   }
 }
@@ -801,6 +886,226 @@ async function removePhoto(index: number) {
   delete photoUris.value[path];
 }
 
+// Comment functions
+function formatCommentDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+async function showAddComment() {
+  const alert = await alertController.create({
+    header: 'Add Comment',
+    inputs: [
+      {
+        name: 'text',
+        type: 'textarea',
+        placeholder: 'Enter your comment...',
+      },
+    ],
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+      },
+      {
+        text: 'Add Photo',
+        handler: async (data) => {
+          const text = data.text?.trim();
+          if (!text) return false; // Keep alert open
+          await addCommentWithPhoto(text);
+        },
+      },
+      {
+        text: 'Add',
+        handler: (data) => {
+          const text = data.text?.trim();
+          if (text) {
+            addComment(text);
+          }
+        },
+      },
+    ],
+  });
+
+  await alert.present();
+}
+
+function addComment(text: string, imagePath?: string) {
+  if (!item.comments) {
+    item.comments = [];
+  }
+  
+  const newComment: Comment = {
+    id: uuidv4(),
+    text,
+    imagePath,
+    createdDate: new Date().toISOString(),
+  };
+  
+  item.comments.push(newComment);
+  
+  // Auto-save for existing items in view mode
+  if (isExistingItem.value && isViewMode.value) {
+    saveItemQuietly();
+  }
+}
+
+async function addCommentWithPhoto(text: string) {
+  const actionSheet = await actionSheetController.create({
+    header: 'Add Photo',
+    buttons: [
+      {
+        text: 'Take Photo',
+        handler: async () => {
+          const path = await photoService.capturePhoto();
+          if (path) {
+            addComment(text, path);
+            // Load the new photo URI
+            commentPhotoUris.value[path] = await photoService.getPhotoUri(path);
+          }
+        },
+      },
+      {
+        text: 'Choose from Library',
+        handler: async () => {
+          const path = await photoService.pickPhoto();
+          if (path) {
+            addComment(text, path);
+            // Load the new photo URI
+            commentPhotoUris.value[path] = await photoService.getPhotoUri(path);
+          }
+        },
+      },
+      {
+        text: 'Cancel',
+        role: 'cancel',
+      },
+    ],
+  });
+
+  await actionSheet.present();
+}
+
+async function showEditComment(comment: Comment) {
+  const alert = await alertController.create({
+    header: 'Edit Comment',
+    inputs: [
+      {
+        name: 'text',
+        type: 'textarea',
+        value: comment.text,
+        placeholder: 'Enter your comment...',
+      },
+    ],
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+      },
+      {
+        text: 'Save',
+        handler: (data) => {
+          const text = data.text?.trim();
+          if (text) {
+            updateComment(comment.id, text);
+          }
+        },
+      },
+    ],
+  });
+
+  await alert.present();
+}
+
+function updateComment(commentId: string, text: string) {
+  if (!item.comments) return;
+  
+  const commentIndex = item.comments.findIndex((c) => c.id === commentId);
+  if (commentIndex === -1) return;
+  
+  const existingComment = item.comments[commentIndex];
+  if (!existingComment) return;
+  
+  item.comments[commentIndex] = {
+    id: existingComment.id,
+    text,
+    imagePath: existingComment.imagePath,
+    createdDate: existingComment.createdDate,
+    updatedDate: new Date().toISOString(),
+  };
+  
+  // Auto-save for existing items in view mode
+  if (isExistingItem.value && isViewMode.value) {
+    saveItemQuietly();
+  }
+}
+
+async function confirmDeleteComment(comment: Comment) {
+  const alert = await alertController.create({
+    header: 'Delete Comment',
+    message: 'Are you sure you want to delete this comment?',
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+      },
+      {
+        text: 'Delete',
+        role: 'destructive',
+        handler: () => {
+          deleteComment(comment);
+        },
+      },
+    ],
+  });
+
+  await alert.present();
+}
+
+async function deleteComment(comment: Comment) {
+  const commentIndex = item.comments?.findIndex((c) => c.id === comment.id);
+  if (commentIndex !== undefined && commentIndex !== -1 && item.comments) {
+    // Delete associated photo if exists
+    if (comment.imagePath) {
+      await photoService.deletePhoto(comment.imagePath);
+      delete commentPhotoUris.value[comment.imagePath];
+    }
+    
+    item.comments.splice(commentIndex, 1);
+    
+    // Auto-save for existing items in view mode
+    if (isExistingItem.value && isViewMode.value) {
+      saveItemQuietly();
+    }
+  }
+}
+
+function viewCommentPhoto(imagePath: string) {
+  // Find the index of the comment with this image
+  const comment = item.comments?.find((c) => c.imagePath === imagePath);
+  if (comment) {
+    // For now, we'll use a simple approach - open in a modal or action sheet
+    // In the future, this could be enhanced with a proper photo viewer
+    window.open(commentPhotoUris.value[imagePath], '_blank');
+  }
+}
+
+async function saveItemQuietly() {
+  try {
+    if (originalItemId.value) {
+      await updateItem({ ...item, id: originalItemId.value } as DashItem);
+      originalItemSnapshot.value = JSON.parse(JSON.stringify(item));
+    }
+  } catch (error) {
+    console.error('Error saving item:', error);
+  }
+}
+
 async function onSave() {
   if (!canSave.value) return;
 
@@ -906,5 +1211,42 @@ ion-chip {
 
 .link-label {
   text-decoration: underline;
+}
+
+/* Comment styles */
+.comment-item {
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+}
+
+.comment-date {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin-bottom: 4px;
+}
+
+.edited-badge {
+  font-style: italic;
+  margin-left: 4px;
+}
+
+.comment-text {
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.comment-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

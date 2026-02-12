@@ -158,6 +158,16 @@ export function useItems() {
       await photoService.deletePhotos(item.photoPaths);
     }
 
+    // Delete comment images
+    if (item.comments && item.comments.length > 0) {
+      const commentImagePaths = item.comments
+        .filter((c) => c.imagePath)
+        .map((c) => c.imagePath as string);
+      if (commentImagePaths.length > 0) {
+        await photoService.deletePhotos(commentImagePaths);
+      }
+    }
+
     await databaseService.deleteItem(id);
     items.value = items.value.filter((i) => i.id !== id);
   }

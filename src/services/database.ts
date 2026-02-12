@@ -61,6 +61,7 @@ class DatabaseService {
         location TEXT,
         links TEXT,
         photo_paths TEXT,
+        comments TEXT,
         item_type TEXT NOT NULL,
         is_completed INTEGER DEFAULT 0,
         due_date TEXT,
@@ -85,6 +86,13 @@ class DatabaseService {
       );
     `;
     await this.db.execute(preferencesSchema);
+
+    // Add comments column for existing databases (migration)
+    try {
+      await this.db.execute(`ALTER TABLE ${TABLE_NAME} ADD COLUMN comments TEXT`);
+    } catch {
+      // Column already exists, ignore
+    }
   }
 
   async createItem(item: DashItem): Promise<void> {
@@ -92,10 +100,10 @@ class DatabaseService {
 
     const query = `
       INSERT INTO ${TABLE_NAME} (
-        id, title, notes, created_date, location, links, photo_paths,
+        id, title, notes, created_date, location, links, photo_paths, comments,
         item_type, is_completed, due_date, priority, tags, is_recurring,
         recurrence_rule, has_reminder, reminder_date, event_date, end_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -106,6 +114,7 @@ class DatabaseService {
       item.location || null,
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
+      JSON.stringify(item.comments || []),
       item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
@@ -149,7 +158,7 @@ class DatabaseService {
 
     const query = `
       UPDATE ${TABLE_NAME} SET
-        title = ?, notes = ?, location = ?, links = ?, photo_paths = ?,
+        title = ?, notes = ?, location = ?, links = ?, photo_paths = ?, comments = ?,
         item_type = ?, is_completed = ?, due_date = ?, priority = ?,
         tags = ?, is_recurring = ?, recurrence_rule = ?, has_reminder = ?,
         reminder_date = ?, event_date = ?, end_date = ?
@@ -162,6 +171,7 @@ class DatabaseService {
       item.location || null,
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
+      JSON.stringify(item.comments || []),
       item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
@@ -194,6 +204,7 @@ class DatabaseService {
       location: row.location || undefined,
       links: JSON.parse(row.links || '[]'),
       photoPaths: JSON.parse(row.photo_paths || '[]'),
+      comments: JSON.parse(row.comments || '[]'),
       itemType: row.item_type,
       isCompleted: row.is_completed === 1,
       dueDate: row.due_date || undefined,
@@ -267,6 +278,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -284,6 +296,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -300,6 +313,7 @@ class DatabaseService {
         location: 'Whole Foods',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: true,
         dueDate: daysFromNow(0),
@@ -317,6 +331,7 @@ class DatabaseService {
         location: 'Downtown Dental',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(2),
@@ -334,6 +349,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(3),
@@ -350,6 +366,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(5),
@@ -366,6 +383,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(1),
@@ -385,6 +403,7 @@ class DatabaseService {
         location: 'Blue Bottle Coffee',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -402,6 +421,7 @@ class DatabaseService {
         location: 'Conference Room A',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -420,6 +440,7 @@ class DatabaseService {
         location: 'Mount Tam',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -437,6 +458,7 @@ class DatabaseService {
         location: '',
         links: [],
         photoPaths: [],
+        comments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(-1),
