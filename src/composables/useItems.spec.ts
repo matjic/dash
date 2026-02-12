@@ -5,6 +5,7 @@ import type { DashItem } from '../models/DashItem';
 
 // Mock the database service
 const mockDbItems: DashItem[] = [];
+const mockPreferences: Record<string, string> = {};
 vi.mock('../services/database', () => ({
   databaseService: {
     initialize: vi.fn(() => Promise.resolve()),
@@ -25,6 +26,11 @@ vi.mock('../services/database', () => ({
       if (index !== -1) {
         mockDbItems.splice(index, 1);
       }
+      return Promise.resolve();
+    }),
+    getPreference: vi.fn((key: string) => Promise.resolve(mockPreferences[key])),
+    setPreference: vi.fn((key: string, value: string) => {
+      mockPreferences[key] = value;
       return Promise.resolve();
     }),
   },
@@ -55,15 +61,20 @@ vi.mock('../services/recurrenceService', () => ({
 }));
 
 describe('useItems', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Clear mock database
     mockDbItems.length = 0;
 
     // Reset the composable state by clearing items
-    const { items, searchText, selectedFilter } = useItems();
+    const { items, searchText, selectedFilter, showCompleted, toggleShowCompleted } = useItems();
     items.value = [];
     searchText.value = '';
     selectedFilter.value = 'all';
+    
+    // Reset showCompleted to false if it's currently true
+    if (showCompleted.value) {
+      await toggleShowCompleted();
+    }
 
     vi.clearAllMocks();
   });
@@ -375,7 +386,12 @@ describe('useItems', () => {
       });
 
       it('should sort events before completed tasks', async () => {
-        const { createItem, filteredItems } = useItems();
+        const { createItem, filteredItems, toggleShowCompleted, showCompleted } = useItems();
+
+        // Enable showing completed tasks so we can test the sorting
+        if (!showCompleted.value) {
+          await toggleShowCompleted();
+        }
 
         await createItem(createTestTask({ title: 'Completed Task', isCompleted: true, dueDate: '2026-01-20T10:00:00.000Z' }));
         await createItem(createTestEvent({ title: 'Event', eventDate: '2026-01-21T10:00:00.000Z' }));
