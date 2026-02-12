@@ -1,6 +1,8 @@
 PODS:
   - Capacitor (8.1.0):
     - CapacitorCordova
+  - CapacitorApp (8.0.0):
+    - Capacitor
   - CapacitorAppLauncher (8.0.0):
     - Capacitor
   - CapacitorBrowser (8.0.0):
@@ -25,6 +27,8 @@ PODS:
     - Capacitor
   - CapacitorShare (8.0.0):
     - Capacitor
+  - CapawesomeCapacitorAppShortcuts (8.0.0):
+    - Capacitor
   - IONFilesystemLib (1.0.1)
   - SQLCipher (4.10.0):
     - SQLCipher/standard (= 4.10.0)
@@ -35,6 +39,7 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
@@ -46,6 +51,7 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
+  - "CapawesomeCapacitorAppShortcuts (from `../../node_modules/@capawesome/capacitor-app-shortcuts`)"
 
 SPEC REPOS:
   trunk:
@@ -56,6 +62,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
   CapacitorAppLauncher:
     :path: "../../node_modules/@capacitor/app-launcher"
   CapacitorBrowser:
@@ -78,9 +86,12 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/local-notifications"
   CapacitorShare:
     :path: "../../node_modules/@capacitor/share"
+  CapawesomeCapacitorAppShortcuts:
+    :path: "../../node_modules/@capawesome/capacitor-app-shortcuts"
 
 SPEC CHECKSUMS:
   Capacitor: 47b825120c6b8b6d6f9f053e9350a8960d436710
+  CapacitorApp: 3963a84197280757b84f126afd1520a85ae3b092
   CapacitorAppLauncher: 7f2330aa2d8a72a4767ab05af9df4bf68166ebf0
   CapacitorBrowser: b7d7f05f840fe042e46f6528bb8db853e3058fb2
   CapacitorCamera: 592acb7ab9fb748e2d8571eb03af30ec4e1ace12
@@ -92,10 +103,11 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: d7868c079a4d5277a3deca27a10a488fcbbb8b69
   CapacitorLocalNotifications: 177cfbf8228d9bd82a147e094cb7984d7afb9e29
   CapacitorShare: 12f1d192170cbcf9f108fd675ac8e343761a4638
+  CapawesomeCapacitorAppShortcuts: c2b3f9c932bdf869f18a37fbec5625b4593311a1
   IONFilesystemLib: 89258b8e3e85465da93127d25d7ce37f977e8a6f
   SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 4e47168e7ec6c4b0d0ff42c49f2624b953799c8f
+PODFILE CHECKSUM: 5c3f30cb4b85d9c7e0b524c35c60032d9de21c0a
 
 COCOAPODS: 1.16.2

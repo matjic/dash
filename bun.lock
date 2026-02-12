@@ -7,6 +7,7 @@
       "dependencies": {
         "@capacitor-community/date-picker": "^7.1.0",
         "@capacitor-community/sqlite": "^7.0.3",
+        "@capacitor/app": "^8.0.0",
         "@capacitor/app-launcher": "^8.0.0",
         "@capacitor/browser": "^8.0.0",
         "@capacitor/camera": "^8.0.0",
@@ -17,6 +18,7 @@
         "@capacitor/keyboard": "^8.0.0",
         "@capacitor/local-notifications": "^8.0.0",
         "@capacitor/share": "^8.0.0",
+        "@capawesome/capacitor-app-shortcuts": "^8.0.0",
         "@ionic/vue": "^8.7.17",
         "@ionic/vue-router": "^8.7.17",
         "chrono-node": "^2.9.0",
@@ -65,6 +67,8 @@
 
     "@capacitor-community/sqlite": ["@capacitor-community/sqlite@7.0.3", "", { "dependencies": { "jeep-sqlite": "^2.7.2" }, "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-aKOCM3RglhF9Q2XA7NMyT923tc+dY9ANLzB+FgKy6Q6jxJIHuJ6YRZbFHJKicBjheCOP1k7HpPIdnZ05GpsGVg=="],
 
+    "@capacitor/app": ["@capacitor/app@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-OwzIkUs4w433Bu9WWAEbEYngXEfJXZ9Wmdb8eoaqzYBgB0W9/3Ed/mh6sAYPNBAZlpyarmewgP7Nb+d3Vrh+xA=="],
+
     "@capacitor/app-launcher": ["@capacitor/app-launcher@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-sHPE1fkRfyxisDDMHKdSXNHT147q+7+6gSVQi7KCCZ2B9Ibl3/QlFVzWDp0z0OuCHVz97jjoML9jqd5ELg94+g=="],
 
     "@capacitor/browser": ["@capacitor/browser@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-xey7maszGABKuStvXDV4vXN+EzIyz0o7zlyzw4JKG6o/1GzqeqHqVuE+8Ux+Hks3DZji4LoriWZVgVF6mR6RGg=="],
@@ -88,6 +92,8 @@
     "@capacitor/share": ["@capacitor/share@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-VU+xT4LFwr4keIC0UKDqGQVAiNlAHwoTMQg8wVVSxtn/k32VOvvtqFfu63qnXr40WKytZWrxJfVESvRjd761yg=="],
 
     "@capacitor/synapse": ["@capacitor/synapse@1.0.4", "", {}, "sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw=="],
+
+    "@capawesome/capacitor-app-shortcuts": ["@capawesome/capacitor-app-shortcuts@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-LOzLfTLBidmLmSNpT24JgEZ1PC2ckwFWwlwDtkQKNEk/fZYgqCl/kVMaFX1cE1Ko5YRWW1z2I5K/vPoJ9HQx5A=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@6.0.1", "", {}, "sha512-NmXRccUJMk2AWA5A7e5a//3bCIMyOu2hAtdRYrhPPHjDxINuCwX1w6rnIZ4xjLcp0ayv6h8Pc3X0eJUGiAAXHQ=="],
 

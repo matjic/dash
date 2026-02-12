@@ -574,7 +574,12 @@ const priorityColor = computed(() => {
 
 onMounted(async () => {
   const paramId = route.params.id as string | undefined;
-  if (paramId) {
+  
+  // Check for query parameters from shortcuts/deep links
+  const queryType = route.query.type as string | undefined;
+  const queryTitle = route.query.title as string | undefined;
+  
+  if (paramId && paramId !== 'new') {
     originalItemId.value = paramId;
     const existingItem = items.value.find((i) => i.id === paramId);
     if (existingItem) {
@@ -590,6 +595,14 @@ onMounted(async () => {
   } else {
     // New item - start in edit mode
     isViewMode.value = false;
+    
+    // Apply query parameters if present (from shortcuts/Siri)
+    if (queryType === 'task' || queryType === 'event') {
+      item.itemType = queryType;
+    }
+    if (queryTitle) {
+      item.title = queryTitle;
+    }
   }
 });
 
