@@ -5,6 +5,7 @@ def capacitor_pods
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCommunityDatePicker', :path => '../../node_modules/@capacitor-community/date-picker'
   pod 'CapacitorCommunitySqlite', :path => '../../node_modules/@capacitor-community/sqlite'
+  pod 'CapacitorAppLauncher', :path => '../../node_modules/@capacitor/app-launcher'
   pod 'CapacitorBrowser', :path => '../../node_modules/@capacitor/browser'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
   pod 'CapacitorFilesystem', :path => '../../node_modules/@capacitor/filesystem'

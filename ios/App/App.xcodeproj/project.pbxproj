@@ -178,6 +178,7 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Dash/Pods-Dash-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework",
+				"${BUILT_PRODUCTS_DIR}/CapacitorAppLauncher/CapacitorAppLauncher.framework",
 				"${BUILT_PRODUCTS_DIR}/CapacitorBrowser/CapacitorBrowser.framework",
 				"${BUILT_PRODUCTS_DIR}/CapacitorCamera/CapacitorCamera.framework",
 				"${BUILT_PRODUCTS_DIR}/CapacitorCommunityDatePicker/CapacitorCommunityDatePicker.framework",
@@ -195,6 +196,7 @@
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Capacitor.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorAppLauncher.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorBrowser.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorCamera.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CapacitorCommunityDatePicker.framework",

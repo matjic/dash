@@ -163,6 +163,18 @@
               </div>
             </ion-item>
           </template>
+
+          <!-- Actions -->
+          <template v-if="canGenerateCalendarLink(item)">
+            <ion-item-divider>
+              <ion-label>Actions</ion-label>
+            </ion-item-divider>
+            <ion-item button @click="addToGoogleCalendar">
+              <ion-icon :icon="logoGoogle" slot="start" color="primary" />
+              <ion-label>Add to Google Calendar</ion-label>
+              <ion-icon :icon="openOutline" slot="end" color="medium" />
+            </ion-item>
+          </template>
         </ion-list>
       </template>
 
@@ -430,11 +442,14 @@ import {
   notificationsOutline,
   locationOutline,
   openOutline,
+  logoGoogle,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { AppLauncher } from '@capacitor/app-launcher';
 import { useItems } from '../composables/useItems';
 import { photoService } from '../services/photoService';
 import { openLink } from '../services/linkService';
+import { generateGoogleCalendarLink, canGenerateCalendarLink } from '../services/calendarLinkService';
 import type { DashItem } from '../models/DashItem';
 import { createEmptyItem } from '../models/DashItem';
 import RichText from '../components/RichText.vue';
@@ -554,6 +569,16 @@ async function openExternalLink(url: string) {
   await openLink(url);
 }
 
+async function addToGoogleCalendar() {
+  const url = generateGoogleCalendarLink(item);
+  if (url) {
+    await Haptics.impact({ style: ImpactStyle.Light });
+    // Open in external Safari (not in-app browser) so it has access
+    // to the user's Google login session
+    await AppLauncher.openUrl({ url });
+  }
+}
+
 // Photo viewer functions
 function viewPhoto(index: number) {
   photoViewerIndex.value = index;
@@ -566,75 +591,87 @@ function closePhotoViewer() {
 
 async function pickDueDate() {
   try {
+    const currentDate = item.dueDate ? new Date(item.dueDate).toISOString() : new Date().toISOString();
     const result = await DatePicker.present({
       mode: 'dateAndTime',
-      date: item.dueDate ? new Date(item.dueDate).toISOString() : undefined,
+      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      date: currentDate,
       theme: getTheme(),
       ios: {
-        style: 'wheels',
+        style: 'inline',
       },
     });
-    if (result.value) {
+    if (result?.value) {
       item.dueDate = result.value;
     }
-  } catch {
-    // User cancelled
+  } catch (error) {
+    console.log('Date picker cancelled or error:', error);
   }
 }
 
 async function pickReminderDate() {
   try {
+    const now = new Date();
+    const currentDate = item.reminderDate ? new Date(item.reminderDate).toISOString() : now.toISOString();
     const result = await DatePicker.present({
       mode: 'dateAndTime',
-      date: item.reminderDate ? new Date(item.reminderDate).toISOString() : undefined,
-      min: new Date().toISOString(),
+      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      date: currentDate,
+      min: now.toISOString(),
       theme: getTheme(),
       ios: {
-        style: 'wheels',
+        style: 'inline',
       },
     });
-    if (result.value) {
+    if (result?.value) {
       item.reminderDate = result.value;
     }
-  } catch {
-    // User cancelled
+  } catch (error) {
+    console.log('Date picker cancelled or error:', error);
   }
 }
 
 async function pickEventDate() {
   try {
+    const currentDate = item.eventDate ? new Date(item.eventDate).toISOString() : new Date().toISOString();
     const result = await DatePicker.present({
       mode: 'dateAndTime',
-      date: item.eventDate ? new Date(item.eventDate).toISOString() : undefined,
+      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      date: currentDate,
       theme: getTheme(),
       ios: {
-        style: 'wheels',
+        style: 'inline',
       },
     });
-    if (result.value) {
+    if (result?.value) {
       item.eventDate = result.value;
     }
-  } catch {
-    // User cancelled
+  } catch (error) {
+    console.log('Date picker cancelled or error:', error);
   }
 }
 
 async function pickEndDate() {
   try {
+    const currentDate = item.endDate 
+      ? new Date(item.endDate).toISOString() 
+      : (item.eventDate ? new Date(item.eventDate).toISOString() : new Date().toISOString());
+    const minDate = item.eventDate ? new Date(item.eventDate).toISOString() : undefined;
     const result = await DatePicker.present({
       mode: 'dateAndTime',
-      date: item.endDate ? new Date(item.endDate).toISOString() : undefined,
-      min: item.eventDate || undefined,
+      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      date: currentDate,
+      min: minDate,
       theme: getTheme(),
       ios: {
-        style: 'wheels',
+        style: 'inline',
       },
     });
-    if (result.value) {
+    if (result?.value) {
       item.endDate = result.value;
     }
-  } catch {
-    // User cancelled
+  } catch (error) {
+    console.log('Date picker cancelled or error:', error);
   }
 }
 

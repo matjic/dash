@@ -12,8 +12,11 @@ export type FilterType = 'all' | 'tasks' | 'events';
 const items = ref<DashItem[]>([]);
 const searchText = ref('');
 const selectedFilter = ref<FilterType>('all');
+const showCompleted = ref(false);
 const isLoading = ref(false);
 const isInitialized = ref(false);
+
+const SHOW_COMPLETED_KEY = 'show_completed';
 
 export function useItems() {
   const filteredItems = computed(() => {
@@ -24,6 +27,13 @@ export function useItems() {
       result = result.filter((item) => item.itemType === 'task');
     } else if (selectedFilter.value === 'events') {
       result = result.filter((item) => item.itemType === 'event');
+    }
+
+    // Filter out completed tasks unless showCompleted is true
+    if (!showCompleted.value) {
+      result = result.filter((item) => 
+        item.itemType === 'event' || !item.isCompleted
+      );
     }
 
     // Apply search filter
@@ -79,6 +89,11 @@ export function useItems() {
       await databaseService.initialize();
       await photoService.initialize();
       await loadItems();
+      
+      // Load showCompleted preference
+      const showCompletedPref = await databaseService.getPreference(SHOW_COMPLETED_KEY);
+      showCompleted.value = showCompletedPref === 'true';
+      
       isInitialized.value = true;
     } catch (error) {
       console.error('Error initializing:', error);
@@ -203,12 +218,18 @@ export function useItems() {
     selectedFilter.value = filter;
   }
 
+  async function toggleShowCompleted(): Promise<void> {
+    showCompleted.value = !showCompleted.value;
+    await databaseService.setPreference(SHOW_COMPLETED_KEY, showCompleted.value ? 'true' : 'false');
+  }
+
   return {
     // State
     items,
     filteredItems,
     searchText,
     selectedFilter,
+    showCompleted,
     isLoading,
     isInitialized,
 
@@ -223,5 +244,6 @@ export function useItems() {
     convertToTask,
     setSearchText,
     setFilter,
+    toggleShowCompleted,
   };
 }

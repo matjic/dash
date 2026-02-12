@@ -5,6 +5,8 @@
       class="main-content"
       :scroll-events="true"
       @ionScroll="onScroll"
+      @ionScrollStart="onScrollStart"
+      @click="onContentClick"
     >
       <!-- Header -->
       <div class="app-header">
@@ -54,9 +56,17 @@
     <!-- Floating filter bar -->
     <div class="floating-filter" :class="{ 'filter-hidden': isFilterHidden }">
       <FilterTabs v-model="localFilter" />
+      <button 
+        class="completed-toggle"
+        :class="{ 'toggle-active': showCompleted }"
+        @click="onToggleShowCompleted"
+        :aria-label="showCompleted ? 'Hide completed' : 'Show completed'"
+      >
+        <ion-icon :icon="showCompleted ? checkmarkCircle : checkmarkCircleOutline" />
+      </button>
     </div>
     
-    <QuickAddBar />
+    <QuickAddBar ref="quickAddRef" />
   </ion-page>
 </template>
 
@@ -71,7 +81,7 @@ import {
   IonSpinner,
   alertController,
 } from '@ionic/vue';
-import { clipboardOutline } from 'ionicons/icons';
+import { clipboardOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 import logoLight from '../assets/dash_d_tight_light.svg';
 import logoDark from '../assets/dash_d_tight_dark.svg';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
@@ -86,13 +96,16 @@ const {
   filteredItems,
   isLoading,
   selectedFilter,
+  showCompleted,
   setFilter,
   toggleComplete,
+  toggleShowCompleted,
   deleteItem,
   convertToEvent,
   convertToTask,
 } = useItems();
 
+const quickAddRef = ref<InstanceType<typeof QuickAddBar> | null>(null);
 const localFilter = ref<FilterType>(selectedFilter.value);
 const isFilterHidden = ref(false);
 let lastScrollTop = 0;
@@ -102,6 +115,20 @@ let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(localFilter, (value) => {
   setFilter(value);
 });
+
+// Dismiss keyboard when tapping outside the input area
+function onContentClick(event: Event) {
+  const target = event.target as HTMLElement;
+  // Don't dismiss if tapping on the QuickAddBar itself
+  if (!target.closest('.quick-add-footer')) {
+    quickAddRef.value?.dismissKeyboard();
+  }
+}
+
+// Dismiss keyboard when scrolling starts
+function onScrollStart() {
+  quickAddRef.value?.dismissKeyboard();
+}
 
 function onScroll(event: CustomEvent) {
   const scrollTop = event.detail.scrollTop;
@@ -171,6 +198,11 @@ async function onConvertToEvent(id: string) {
 async function onConvertToTask(id: string) {
   await Haptics.impact({ style: ImpactStyle.Light });
   await convertToTask(id);
+}
+
+async function onToggleShowCompleted() {
+  await Haptics.impact({ style: ImpactStyle.Light });
+  await toggleShowCompleted();
 }
 </script>
 
@@ -280,6 +312,11 @@ async function onConvertToTask(id: string) {
   z-index: 99;
   transition: opacity 0.25s ease, transform 0.25s ease;
   
+  /* Layout for filter tabs + toggle */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
   /* Pill shape */
   border-radius: 22px;
   padding: 4px;
@@ -304,5 +341,38 @@ async function onConvertToTask(id: string) {
   opacity: 0;
   transform: translateX(-50%) translateY(20px);
   pointer-events: none;
+}
+
+.completed-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.completed-toggle ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-medium);
+}
+
+.completed-toggle:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.completed-toggle.toggle-active ion-icon {
+  color: var(--ion-color-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .completed-toggle:active {
+    background: rgba(255, 255, 255, 0.15);
+  }
 }
 </style>

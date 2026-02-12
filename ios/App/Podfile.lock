@@ -1,6 +1,8 @@
 PODS:
   - Capacitor (8.0.1):
     - CapacitorCordova
+  - CapacitorAppLauncher (8.0.0):
+    - Capacitor
   - CapacitorBrowser (8.0.0):
     - Capacitor
   - CapacitorCamera (8.0.0):
@@ -33,6 +35,7 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCommunityDatePicker (from `../../node_modules/@capacitor-community/date-picker`)"
@@ -53,6 +56,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorAppLauncher:
+    :path: "../../node_modules/@capacitor/app-launcher"
   CapacitorBrowser:
     :path: "../../node_modules/@capacitor/browser"
   CapacitorCamera:
@@ -76,6 +81,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Capacitor: ff35b0f66370b84aa238251b35b91886a3207c16
+  CapacitorAppLauncher: 7f2330aa2d8a72a4767ab05af9df4bf68166ebf0
   CapacitorBrowser: b7d7f05f840fe042e46f6528bb8db853e3058fb2
   CapacitorCamera: 592acb7ab9fb748e2d8571eb03af30ec4e1ace12
   CapacitorCommunityDatePicker: 2153830f945bde877aead4ecafc0db448f831b3e
@@ -90,6 +96,6 @@ SPEC CHECKSUMS:
   SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 0e52cec69ad2185bada4b3d944188f71d7095b4e
+PODFILE CHECKSUM: 4e47168e7ec6c4b0d0ff42c49f2624b953799c8f
 
 COCOAPODS: 1.16.2

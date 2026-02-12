@@ -4,6 +4,7 @@ import type { DashItem } from '../models/DashItem';
 
 const DB_NAME = 'dash.db';
 const TABLE_NAME = 'dash_items';
+const PREFERENCES_TABLE = 'user_preferences';
 
 class DatabaseService {
   private sqlite: SQLiteConnection;
@@ -75,6 +76,15 @@ class DatabaseService {
     `;
 
     await this.db.execute(schema);
+
+    // Create preferences table
+    const preferencesSchema = `
+      CREATE TABLE IF NOT EXISTS ${PREFERENCES_TABLE} (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL
+      );
+    `;
+    await this.db.execute(preferencesSchema);
   }
 
   async createItem(item: DashItem): Promise<void> {
@@ -196,6 +206,30 @@ class DatabaseService {
       eventDate: row.event_date || undefined,
       endDate: row.end_date || undefined,
     };
+  }
+
+  async getPreference(key: string): Promise<string | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.query(
+      `SELECT value FROM ${PREFERENCES_TABLE} WHERE key = ?`,
+      [key]
+    );
+
+    if (!result.values || result.values.length === 0) {
+      return null;
+    }
+
+    return result.values[0].value;
+  }
+
+  async setPreference(key: string, value: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.run(
+      `INSERT OR REPLACE INTO ${PREFERENCES_TABLE} (key, value) VALUES (?, ?)`,
+      [key, value]
+    );
   }
 
   async close(): Promise<void> {

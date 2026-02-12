@@ -3,6 +3,7 @@
     <div class="input-container">
       <ion-icon :icon="searchOutline" class="search-icon" />
       <input
+        ref="inputRef"
         v-model="inputText"
         type="text"
         placeholder="Search or add..."
@@ -37,6 +38,7 @@ import { useItems } from '../composables/useItems';
 
 const { createItem, setSearchText, searchText } = useItems();
 
+const inputRef = ref<HTMLInputElement | null>(null);
 const inputText = ref(searchText.value);
 const keyboardHeight = ref(0);
 
@@ -74,6 +76,14 @@ function clearInput() {
   inputText.value = '';
   setSearchText('');
 }
+
+async function dismissKeyboard() {
+  inputRef.value?.blur();
+  await Keyboard.hide();
+}
+
+// Expose dismissKeyboard for parent components
+defineExpose({ dismissKeyboard });
 
 async function onAdd() {
   if (!canAdd.value) return;
