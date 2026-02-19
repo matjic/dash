@@ -93,6 +93,13 @@ class DatabaseService {
     } catch {
       // Column already exists, ignore
     }
+
+    // Add updated_date column for existing databases (migration)
+    try {
+      await this.db.execute(`ALTER TABLE ${TABLE_NAME} ADD COLUMN updated_date TEXT`);
+    } catch {
+      // Column already exists, ignore
+    }
   }
 
   async createItem(item: DashItem): Promise<void> {
@@ -161,7 +168,7 @@ class DatabaseService {
         title = ?, notes = ?, location = ?, links = ?, photo_paths = ?, comments = ?,
         item_type = ?, is_completed = ?, due_date = ?, priority = ?,
         tags = ?, is_recurring = ?, recurrence_rule = ?, has_reminder = ?,
-        reminder_date = ?, event_date = ?, end_date = ?
+        reminder_date = ?, event_date = ?, end_date = ?, updated_date = ?
       WHERE id = ?
     `;
 
@@ -183,6 +190,7 @@ class DatabaseService {
       item.reminderDate || null,
       item.eventDate || null,
       item.endDate || null,
+      new Date().toISOString(), // Always set updated_date on update
       item.id,
     ];
 
@@ -201,6 +209,7 @@ class DatabaseService {
       title: row.title,
       notes: row.notes || undefined,
       createdDate: row.created_date,
+      updatedDate: row.updated_date || undefined,
       location: row.location || undefined,
       links: JSON.parse(row.links || '[]'),
       photoPaths: JSON.parse(row.photo_paths || '[]'),

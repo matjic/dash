@@ -237,6 +237,12 @@
           <ion-item v-else lines="none">
             <ion-label color="medium">No comments yet</ion-label>
           </ion-item>
+
+          <!-- Timestamps -->
+          <div class="timestamps-section">
+            <p class="timestamp-text">Created {{ formatRelativeDate(item.createdDate) }}</p>
+            <p v-if="item.updatedDate" class="timestamp-text">Updated {{ formatRelativeDate(item.updatedDate) }}</p>
+          </div>
         </ion-list>
       </template>
 
@@ -703,6 +709,31 @@ function formatDate(dateString: string): string {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) {
+    return 'just now';
+  } else if (diffMins < 60) {
+    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  } else if (diffDays < 7) {
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  } else {
+    return date.toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    });
+  }
 }
 
 function getTheme(): 'light' | 'dark' {
@@ -1343,5 +1374,17 @@ ion-chip {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* Timestamps section */
+.timestamps-section {
+  padding: 16px;
+  text-align: center;
+}
+
+.timestamp-text {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin: 4px 0;
 }
 </style>
