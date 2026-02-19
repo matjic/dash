@@ -194,7 +194,6 @@
                 <ion-button
                   fill="clear"
                   size="small"
-                  :disabled="!newCommentText.trim()"
                   @click="handleAddCommentWithPhoto"
                 >
                   <ion-icon slot="icon-only" :icon="cameraOutline" />
@@ -466,7 +465,6 @@
                 <ion-button
                   fill="clear"
                   size="small"
-                  :disabled="!newCommentText.trim()"
                   @click="handleAddCommentWithPhoto"
                 >
                   <ion-icon slot="icon-only" :icon="cameraOutline" />
@@ -1042,10 +1040,8 @@ function handleAddComment() {
 
 async function handleAddCommentWithPhoto() {
   const text = newCommentText.value.trim();
-  if (text) {
-    await addCommentWithPhoto(text);
-    newCommentText.value = '';
-  }
+  await addCommentWithPhoto(text);
+  newCommentText.value = '';
 }
 
 async function showEditComment(comment: Comment) {
