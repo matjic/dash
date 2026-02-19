@@ -51,25 +51,22 @@
       <div class="bottom-spacer"></div>
     </ion-content>
 
-    <!-- Floating filter bar -->
-    <div class="floating-filter" :class="{ 'filter-hidden': isFilterHidden }">
-      <FilterTabs v-model="localFilter" />
-      <button 
-        class="completed-toggle"
-        :class="{ 'toggle-active': showCompleted }"
-        @click="onToggleShowCompleted"
-        :aria-label="showCompleted ? 'Hide completed' : 'Show completed'"
-      >
-        <ion-icon :icon="showCompleted ? checkmarkCircle : checkmarkCircleOutline" />
-      </button>
-    </div>
+    <!-- Floating toggle button -->
+    <button 
+      class="floating-completed-toggle"
+      :class="{ 'toggle-active': showCompleted, 'toggle-hidden': isFilterHidden }"
+      @click="onToggleShowCompleted"
+      :aria-label="showCompleted ? 'Hide completed' : 'Show completed'"
+    >
+      <ion-icon :icon="showCompleted ? checkmarkCircle : checkmarkCircleOutline" />
+    </button>
     
     <QuickAddBar ref="quickAddRef" />
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage,
@@ -83,11 +80,9 @@ import { clipboardOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionic
 import logoLight from '../assets/dash_d_tight_light.svg';
 import logoDark from '../assets/dash_d_tight_dark.svg';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import FilterTabs from '../components/FilterTabs.vue';
 import ItemRow from '../components/ItemRow.vue';
 import QuickAddBar from '../components/QuickAddBar.vue';
 import { useItems } from '../composables/useItems';
-import type { FilterType } from '../components/FilterTabs.vue';
 import type { DashItem } from '../models/DashItem';
 
 const router = useRouter();
@@ -101,16 +96,11 @@ const {
 } = useItems();
 
 const quickAddRef = ref<InstanceType<typeof QuickAddBar> | null>(null);
-const localFilter = ref<FilterType>('all');
 const isFilterHidden = ref(false);
 let lastScrollTop = 0;
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Filter state is local only (no events to filter anymore)
-watch(localFilter, () => {
-  // Filter tabs kept for visual consistency but no filtering action needed
-  // since everything is a task now
-});
+
 
 // Dismiss keyboard when tapping outside the input area
 function onContentClick(event: Event) {
@@ -290,22 +280,24 @@ async function onToggleShowCompleted() {
   height: calc(130px + env(safe-area-inset-bottom));
 }
 
-.floating-filter {
+.floating-completed-toggle {
   position: fixed;
   bottom: calc(70px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+  right: 16px;
   z-index: 99;
-  transition: opacity 0.25s ease, transform 0.25s ease;
   
-  /* Layout for filter tabs + toggle */
+  /* Button sizing */
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 66px;
+  height: 66px;
+  border: none;
+  border-radius: 33px;
+  cursor: pointer;
   
-  /* Pill shape */
-  border-radius: 22px;
-  padding: 4px;
+  /* Transitions */
+  transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease;
   
   /* Liquid glass effect - Light mode */
   background: rgba(255, 255, 255, 0.7);
@@ -315,50 +307,34 @@ async function onToggleShowCompleted() {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+.floating-completed-toggle ion-icon {
+  font-size: 36px;
+  color: var(--ion-color-medium);
+}
+
+.floating-completed-toggle:active {
+  background: rgba(230, 230, 230, 0.8);
+}
+
+.floating-completed-toggle.toggle-active ion-icon {
+  color: var(--ion-color-primary);
+}
+
+.floating-completed-toggle.toggle-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
 @media (prefers-color-scheme: dark) {
-  .floating-filter {
+  .floating-completed-toggle {
     background: rgba(60, 60, 60, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
-}
-
-.floating-filter.filter-hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px);
-  pointer-events: none;
-}
-
-.completed-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 16px;
-  cursor: pointer;
-  margin-left: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.completed-toggle ion-icon {
-  font-size: 20px;
-  color: var(--ion-color-medium);
-}
-
-.completed-toggle:active {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.completed-toggle.toggle-active ion-icon {
-  color: var(--ion-color-primary);
-}
-
-@media (prefers-color-scheme: dark) {
-  .completed-toggle:active {
-    background: rgba(255, 255, 255, 0.15);
+  
+  .floating-completed-toggle:active {
+    background: rgba(80, 80, 80, 0.8);
   }
 }
 </style>
