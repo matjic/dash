@@ -15,6 +15,7 @@ export interface DashItem {
   title: string;
   notes?: string;
   createdDate: string;
+  updatedDate?: string;
   location?: string;
   links: string[];
   photoPaths: string[];
