@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2AA5596A2F46B53700C970E4 /* DashBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA5596B2F46B53700C970E4 /* DashBridgeViewController.swift */; };
 		2AA559692F46B53600C970E4 /* PdfGeneratorPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA559682F46B53600C970E4 /* PdfGeneratorPlugin.swift */; };
+		2AA5596A2F46B53700C970E4 /* DashBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA5596B2F46B53700C970E4 /* DashBridgeViewController.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -430,7 +430,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = co.matj.dash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -454,7 +454,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = co.matj.dash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
