@@ -42,9 +42,13 @@ class NotificationService {
           {
             id: this.getNotificationId(item.id),
             title: item.title,
-            body: item.notes || 'Reminder',
+            body: this.formatNotificationBody(item),
             schedule: {
               at: reminderDate,
+            },
+            extra: {
+              itemId: item.id,
+              itemType: item.itemType,
             },
           },
         ],
@@ -74,11 +78,45 @@ class NotificationService {
     }
   }
 
+  /**
+   * Format notification body with relevant date/time info
+   */
+  private formatNotificationBody(item: DashItem): string {
+    const isEvent = item.itemType === 'event';
+    const relevantDate = isEvent ? item.eventDate : item.dueDate;
+
+    if (relevantDate) {
+      const formatted = new Date(relevantDate).toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+
+      if (isEvent) {
+        return `Event starts ${formatted}`;
+      } else {
+        return `Due ${formatted}`;
+      }
+    }
+
+    // Fallback to notes or generic message
+    return item.notes || (isEvent ? 'Event reminder' : 'Task reminder');
+  }
+
+  /**
+   * Generate a stable notification ID from item UUID using a proper hash function
+   * This prevents collisions that could occur with the previous implementation
+   */
   private getNotificationId(itemId: string): number {
-    // Convert UUID to a consistent integer ID
-    // Take the first 8 characters of the UUID and convert to a number
-    const hash = itemId.substring(0, 8);
-    return parseInt(hash.replace(/[^0-9]/g, '').substring(0, 9)) || 1;
+    let hash = 0;
+    for (let i = 0; i < itemId.length; i++) {
+      const char = itemId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    // Ensure positive number and within safe range for notification IDs
+    return Math.abs(hash) % 2147483647;
   }
 }
 
