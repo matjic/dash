@@ -2,7 +2,7 @@ import { AppShortcuts } from '@capawesome/capacitor-app-shortcuts';
 import { Capacitor } from '@capacitor/core';
 import type { Router } from 'vue-router';
 
-export type ShortcutId = 'add-task' | 'add-event' | 'show-today';
+export type ShortcutId = 'add-task' | 'show-today';
 
 interface ShortcutConfig {
   id: ShortcutId;
@@ -17,12 +17,6 @@ const shortcuts: ShortcutConfig[] = [
     title: 'Add Task',
     description: 'Create a new task',
     iosIcon: 'plus.circle.fill',
-  },
-  {
-    id: 'add-event',
-    title: 'Add Event',
-    description: 'Create a new event',
-    iosIcon: 'calendar.badge.plus',
   },
   {
     id: 'show-today',
@@ -69,9 +63,6 @@ export function setupShortcutListener(router: Router): void {
       case 'add-task':
         await router.push({ name: 'ItemDetail', params: { id: 'new' }, query: { type: 'task' } });
         break;
-      case 'add-event':
-        await router.push({ name: 'ItemDetail', params: { id: 'new' }, query: { type: 'event' } });
-        break;
       case 'show-today':
         await router.push({ name: 'Timeline', query: { filter: 'today' } });
         break;
@@ -102,14 +93,6 @@ export async function handleDeepLink(url: string, router: Router): Promise<boole
           name: 'ItemDetail', 
           params: { id: 'new' }, 
           query: { type: 'task', title: params.title } 
-        });
-        return true;
-      
-      case 'add-event':
-        await router.push({ 
-          name: 'ItemDetail', 
-          params: { id: 'new' }, 
-          query: { type: 'event', title: params.title } 
         });
         return true;
       

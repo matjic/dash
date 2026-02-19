@@ -96,7 +96,6 @@ async function onAdd() {
 
     await createItem({
       title: parsed.title,
-      itemType: 'task',
       priority: parsed.priority,
       isRecurring: parsed.isRecurring,
       recurrenceRule: parsed.recurrenceRule,

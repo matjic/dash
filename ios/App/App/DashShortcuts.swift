@@ -24,20 +24,6 @@ struct DashShortcuts: AppShortcutsProvider {
             systemImageName: "plus.circle.fill"
         )
         
-        // Add Event shortcut - Siri will ask "What's the event?"
-        AppShortcut(
-            intent: AddEventIntent(),
-            phrases: [
-                "Add event in \(.applicationName)",
-                "Add an event in \(.applicationName)",
-                "New event in \(.applicationName)",
-                "Create event in \(.applicationName)",
-                "Schedule in \(.applicationName)"
-            ],
-            shortTitle: "Add Event",
-            systemImageName: "calendar.badge.plus"
-        )
-        
         // Show Timeline shortcut
         AppShortcut(
             intent: ShowTimelineIntent(),

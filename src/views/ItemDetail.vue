@@ -34,72 +34,41 @@
           <ion-item lines="none">
             <ion-label class="view-title">
               <h1>{{ item.title }}</h1>
-              <p v-if="item.itemType === 'task'" class="item-type-badge task-badge">Task</p>
-              <p v-else class="item-type-badge event-badge">Event</p>
             </ion-label>
           </ion-item>
 
-          <!-- Task-specific view fields -->
-          <template v-if="item.itemType === 'task'">
-            <ion-item v-if="item.dueDate">
-              <ion-icon :icon="calendarOutline" slot="start" color="primary" />
-              <ion-label>
-                <p>Due Date</p>
-                <h2>{{ formatDate(item.dueDate) }}</h2>
-              </ion-label>
-            </ion-item>
+          <!-- Task view fields -->
+          <ion-item v-if="item.dueDate">
+            <ion-icon :icon="calendarOutline" slot="start" color="primary" />
+            <ion-label>
+              <p>Due Date</p>
+              <h2>{{ formatDate(item.dueDate) }}</h2>
+            </ion-label>
+          </ion-item>
 
-            <ion-item v-if="item.priority && item.priority !== 'none'">
-              <ion-icon :icon="flagOutline" slot="start" :color="priorityColor" />
-              <ion-label>
-                <p>Priority</p>
-                <h2>{{ capitalizeFirst(item.priority) }}</h2>
-              </ion-label>
-            </ion-item>
+          <ion-item v-if="item.priority && item.priority !== 'none'">
+            <ion-icon :icon="flagOutline" slot="start" :color="priorityColor" />
+            <ion-label>
+              <p>Priority</p>
+              <h2>{{ capitalizeFirst(item.priority) }}</h2>
+            </ion-label>
+          </ion-item>
 
-            <ion-item v-if="item.isRecurring">
-              <ion-icon :icon="repeatOutline" slot="start" color="tertiary" />
-              <ion-label>
-                <p>Repeats</p>
-                <h2>{{ capitalizeFirst(item.recurrenceRule || 'daily') }}</h2>
-              </ion-label>
-            </ion-item>
+          <ion-item v-if="item.isRecurring">
+            <ion-icon :icon="repeatOutline" slot="start" color="tertiary" />
+            <ion-label>
+              <p>Repeats</p>
+              <h2>{{ capitalizeFirst(item.recurrenceRule || 'daily') }}</h2>
+            </ion-label>
+          </ion-item>
 
-            <ion-item v-if="item.hasReminder && item.reminderDate">
-              <ion-icon :icon="notificationsOutline" slot="start" color="warning" />
-              <ion-label>
-                <p>Reminder</p>
-                <h2>{{ formatDate(item.reminderDate) }}</h2>
-              </ion-label>
-            </ion-item>
-          </template>
-
-          <!-- Event-specific view fields -->
-          <template v-if="item.itemType === 'event'">
-            <ion-item v-if="item.eventDate">
-              <ion-icon :icon="calendarOutline" slot="start" color="primary" />
-              <ion-label>
-                <p>Start Date</p>
-                <h2>{{ formatDate(item.eventDate) }}</h2>
-              </ion-label>
-            </ion-item>
-
-            <ion-item v-if="item.endDate">
-              <ion-icon :icon="calendarOutline" slot="start" color="medium" />
-              <ion-label>
-                <p>End Date</p>
-                <h2>{{ formatDate(item.endDate) }}</h2>
-              </ion-label>
-            </ion-item>
-
-            <ion-item v-if="item.hasReminder && item.reminderDate">
-              <ion-icon :icon="notificationsOutline" slot="start" color="warning" />
-              <ion-label>
-                <p>Reminder</p>
-                <h2>{{ formatDate(item.reminderDate) }}</h2>
-              </ion-label>
-            </ion-item>
-          </template>
+          <ion-item v-if="item.hasReminder && item.reminderDate">
+            <ion-icon :icon="notificationsOutline" slot="start" color="warning" />
+            <ion-label>
+              <p>Reminder</p>
+              <h2>{{ formatDate(item.reminderDate) }}</h2>
+            </ion-label>
+          </ion-item>
 
           <!-- Location -->
           <ion-item v-if="item.location">
@@ -169,18 +138,6 @@
                   <img :src="photoUris[photoPath]" />
                 </div>
               </div>
-            </ion-item>
-          </template>
-
-          <!-- Actions -->
-          <template v-if="canGenerateCalendarLink(item)">
-            <ion-item-divider>
-              <ion-label>Actions</ion-label>
-            </ion-item-divider>
-            <ion-item button @click="addToGoogleCalendar">
-              <ion-icon :icon="logoGoogle" slot="start" color="primary" />
-              <ion-label>Add to Google Calendar</ion-label>
-              <ion-icon :icon="openOutline" slot="end" color="medium" />
             </ion-item>
           </template>
 
@@ -268,105 +225,56 @@
             />
           </ion-item>
 
-          <!-- Item Type -->
-          <ion-item>
-            <ion-label>Type</ion-label>
-            <ion-segment v-model="item.itemType" @ionChange="onTypeChange">
-              <ion-segment-button value="task">
-                <ion-icon :icon="checkmarkCircleOutline" />
-                <ion-label>Task</ion-label>
-              </ion-segment-button>
-              <ion-segment-button value="event">
-                <ion-icon :icon="calendarOutline" />
-                <ion-label>Event</ion-label>
-              </ion-segment-button>
-            </ion-segment>
+          <!-- Due Date -->
+          <ion-item button @click="pickDueDate">
+            <ion-label>Due Date</ion-label>
+            <ion-text slot="end" color="medium">
+              {{ item.dueDate ? formatDate(item.dueDate) : 'None' }}
+            </ion-text>
           </ion-item>
 
-          <!-- Task-specific fields -->
-          <template v-if="item.itemType === 'task'">
-            <!-- Due Date -->
-            <ion-item button @click="pickDueDate">
-              <ion-label>Due Date</ion-label>
-              <ion-text slot="end" color="medium">
-                {{ item.dueDate ? formatDate(item.dueDate) : 'None' }}
-              </ion-text>
-            </ion-item>
+          <!-- Priority -->
+          <ion-item>
+            <ion-select
+              v-model="item.priority"
+              label="Priority"
+              interface="action-sheet"
+            >
+              <ion-select-option value="none">None</ion-select-option>
+              <ion-select-option value="low">Low</ion-select-option>
+              <ion-select-option value="medium">Medium</ion-select-option>
+              <ion-select-option value="high">High</ion-select-option>
+            </ion-select>
+          </ion-item>
 
-            <!-- Priority -->
-            <ion-item>
-              <ion-select
-                v-model="item.priority"
-                label="Priority"
-                interface="action-sheet"
-              >
-                <ion-select-option value="none">None</ion-select-option>
-                <ion-select-option value="low">Low</ion-select-option>
-                <ion-select-option value="medium">Medium</ion-select-option>
-                <ion-select-option value="high">High</ion-select-option>
-              </ion-select>
-            </ion-item>
+          <!-- Recurrence -->
+          <ion-item>
+            <ion-toggle v-model="item.isRecurring">Recurring</ion-toggle>
+          </ion-item>
 
-            <!-- Recurrence -->
-            <ion-item>
-              <ion-toggle v-model="item.isRecurring">Recurring</ion-toggle>
-            </ion-item>
+          <ion-item v-if="item.isRecurring">
+            <ion-select
+              v-model="item.recurrenceRule"
+              label="Repeat"
+              interface="action-sheet"
+            >
+              <ion-select-option value="daily">Daily</ion-select-option>
+              <ion-select-option value="weekly">Weekly</ion-select-option>
+              <ion-select-option value="monthly">Monthly</ion-select-option>
+            </ion-select>
+          </ion-item>
 
-            <ion-item v-if="item.isRecurring">
-              <ion-select
-                v-model="item.recurrenceRule"
-                label="Repeat"
-                interface="action-sheet"
-              >
-                <ion-select-option value="daily">Daily</ion-select-option>
-                <ion-select-option value="weekly">Weekly</ion-select-option>
-                <ion-select-option value="monthly">Monthly</ion-select-option>
-              </ion-select>
-            </ion-item>
+          <!-- Reminder -->
+          <ion-item>
+            <ion-toggle v-model="item.hasReminder">Reminder</ion-toggle>
+          </ion-item>
 
-            <!-- Reminder -->
-            <ion-item>
-              <ion-toggle v-model="item.hasReminder">Reminder</ion-toggle>
-            </ion-item>
-
-            <ion-item v-if="item.hasReminder" button @click="pickReminderDate">
-              <ion-label>Reminder Time</ion-label>
-              <ion-text slot="end" color="medium">
-                {{ item.reminderDate ? formatDate(item.reminderDate) : 'Select time' }}
-              </ion-text>
-            </ion-item>
-          </template>
-
-          <!-- Event-specific fields -->
-          <template v-if="item.itemType === 'event'">
-            <!-- Event Date -->
-            <ion-item button @click="pickEventDate">
-              <ion-label>Start Date</ion-label>
-              <ion-text slot="end" color="medium">
-                {{ item.eventDate ? formatDate(item.eventDate) : 'Select date' }}
-              </ion-text>
-            </ion-item>
-
-            <!-- End Date -->
-            <ion-item button @click="pickEndDate">
-              <ion-label>End Date</ion-label>
-              <ion-text slot="end" color="medium">
-                {{ item.endDate ? formatDate(item.endDate) : 'None' }}
-              </ion-text>
-            </ion-item>
-
-            <!-- Reminder -->
-            <ion-item>
-              <ion-toggle v-model="item.hasReminder" @ionChange="onEventReminderToggle">Reminder</ion-toggle>
-            </ion-item>
-
-            <ion-item v-if="item.hasReminder" button @click="pickReminderDate">
-              <ion-label>Reminder Time</ion-label>
-              <ion-text slot="end" color="medium">
-                {{ item.reminderDate ? formatDate(item.reminderDate) : 'Select time' }}
-              </ion-text>
-            </ion-item>
-          </template>
+          <ion-item v-if="item.hasReminder" button @click="pickReminderDate">
+            <ion-label>Reminder Time</ion-label>
+            <ion-text slot="end" color="medium">
+              {{ item.reminderDate ? formatDate(item.reminderDate) : 'Select time' }}
+            </ion-text>
+          </ion-item>
 
           <!-- Common fields -->
           <ion-item-divider>
@@ -569,8 +477,6 @@ import {
   IonSelect,
   IonSelectOption,
   IonToggle,
-  IonSegment,
-  IonSegmentButton,
   IonIcon,
   IonText,
   IonChip,
@@ -580,7 +486,6 @@ import {
 import { DatePicker } from '@capacitor-community/date-picker';
 import {
   chevronBackOutline,
-  checkmarkCircleOutline,
   calendarOutline,
   addOutline,
   closeCircle,
@@ -592,16 +497,13 @@ import {
   notificationsOutline,
   locationOutline,
   openOutline,
-  logoGoogle,
   createOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { AppLauncher } from '@capacitor/app-launcher';
 import { v4 as uuidv4 } from 'uuid';
 import { useItems } from '../composables/useItems';
 import { photoService } from '../services/photoService';
 import { openLink } from '../services/linkService';
-import { generateGoogleCalendarLink, canGenerateCalendarLink } from '../services/calendarLinkService';
 import type { DashItem, Comment } from '../models/DashItem';
 import { createEmptyItem } from '../models/DashItem';
 import RichText from '../components/RichText.vue';
@@ -642,11 +544,9 @@ const sortedComments = computed(() => {
 
 const headerTitle = computed(() => {
   if (isViewMode.value && isExistingItem.value) {
-    return item.itemType === 'task' ? 'Task' : 'Event';
+    return 'Task';
   }
-  const action = isExistingItem.value ? 'Edit' : 'New';
-  const type = item.itemType === 'task' ? 'Task' : 'Event';
-  return `${action} ${type}`;
+  return isExistingItem.value ? 'Edit Task' : 'New Task';
 });
 
 const priorityColor = computed(() => {
@@ -666,7 +566,6 @@ onMounted(async () => {
   const paramId = route.params.id as string | undefined;
   
   // Check for query parameters from shortcuts/deep links
-  const queryType = route.query.type as string | undefined;
   const queryTitle = route.query.title as string | undefined;
   
   if (paramId && paramId !== 'new') {
@@ -687,13 +586,6 @@ onMounted(async () => {
     isViewMode.value = false;
     
     // Apply query parameters if present (from shortcuts/Siri)
-    if (queryType === 'task' || queryType === 'event') {
-      item.itemType = queryType;
-      // Enable reminder by default for new events
-      if (queryType === 'event') {
-        item.hasReminder = true;
-      }
-    }
     if (queryTitle) {
       item.title = queryTitle;
     }
@@ -774,16 +666,6 @@ async function openExternalLink(url: string) {
   await openLink(url);
 }
 
-async function addToGoogleCalendar() {
-  const url = generateGoogleCalendarLink(item);
-  if (url) {
-    await Haptics.impact({ style: ImpactStyle.Light });
-    // Open in external Safari (not in-app browser) so it has access
-    // to the user's Google login session
-    await AppLauncher.openUrl({ url });
-  }
-}
-
 // Photo viewer functions
 function viewPhoto(index: number) {
   photoViewerIndex.value = index;
@@ -833,103 +715,6 @@ async function pickReminderDate() {
     }
   } catch (error) {
     console.log('Date picker cancelled or error:', error);
-  }
-}
-
-async function pickEventDate() {
-  try {
-    const currentDate = item.eventDate ? new Date(item.eventDate).toISOString() : new Date().toISOString();
-    const result = await DatePicker.present({
-      mode: 'dateAndTime',
-      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-      date: currentDate,
-      theme: getTheme(),
-      ios: {
-        style: 'inline',
-      },
-    });
-    if (result?.value) {
-      const hadPreviousDate = !!item.eventDate;
-      item.eventDate = result.value;
-      // Update reminder time if reminder is enabled (default for new events)
-      // Force update if this is a new date selection
-      if (item.hasReminder) {
-        setDefaultEventReminder(!hadPreviousDate);
-      }
-    }
-  } catch (error) {
-    console.log('Date picker cancelled or error:', error);
-  }
-}
-
-async function pickEndDate() {
-  try {
-    const currentDate = item.endDate 
-      ? new Date(item.endDate).toISOString() 
-      : (item.eventDate ? new Date(item.eventDate).toISOString() : new Date().toISOString());
-    const minDate = item.eventDate ? new Date(item.eventDate).toISOString() : undefined;
-    const result = await DatePicker.present({
-      mode: 'dateAndTime',
-      format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-      date: currentDate,
-      min: minDate,
-      theme: getTheme(),
-      ios: {
-        style: 'inline',
-      },
-    });
-    if (result?.value) {
-      item.endDate = result.value;
-    }
-  } catch (error) {
-    console.log('Date picker cancelled or error:', error);
-  }
-}
-
-function onTypeChange() {
-  // When switching type, transfer the date
-  if (item.itemType === 'event' && item.dueDate && !item.eventDate) {
-    item.eventDate = item.dueDate;
-    item.dueDate = undefined;
-    // Enable reminder by default for events
-    if (!isExistingItem.value) {
-      item.hasReminder = true;
-      setDefaultEventReminder();
-    }
-  } else if (item.itemType === 'task' && item.eventDate && !item.dueDate) {
-    item.dueDate = item.eventDate;
-    item.eventDate = undefined;
-    item.endDate = undefined;
-  }
-}
-
-/**
- * Handle event reminder toggle - set default reminder time when enabled
- */
-function onEventReminderToggle() {
-  if (item.hasReminder && item.itemType === 'event') {
-    setDefaultEventReminder();
-  }
-}
-
-/**
- * Set the default reminder time for events (1 hour before event start)
- * @param forceUpdate - If true, update reminder even if already set
- */
-function setDefaultEventReminder(forceUpdate = false) {
-  if (item.eventDate && (forceUpdate || !item.reminderDate)) {
-    const eventTime = new Date(item.eventDate);
-    eventTime.setHours(eventTime.getHours() - 1); // 1 hour before
-    // Only set if it's in the future
-    if (eventTime > new Date()) {
-      item.reminderDate = eventTime.toISOString();
-    } else {
-      // If 1 hour before is in the past, set to event time
-      const eventDate = new Date(item.eventDate);
-      if (eventDate > new Date()) {
-        item.reminderDate = item.eventDate;
-      }
-    }
   }
 }
 
@@ -1319,26 +1104,7 @@ ion-chip {
 .view-title h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  margin: 0 0 4px 0;
-}
-
-.item-type-badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
   margin: 0;
-}
-
-.task-badge {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-}
-
-.event-badge {
-  background: var(--ion-color-tertiary);
-  color: var(--ion-color-tertiary-contrast);
 }
 
 .view-notes {

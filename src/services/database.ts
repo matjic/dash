@@ -62,7 +62,6 @@ class DatabaseService {
         links TEXT,
         photo_paths TEXT,
         comments TEXT,
-        item_type TEXT NOT NULL,
         is_completed INTEGER DEFAULT 0,
         due_date TEXT,
         priority TEXT DEFAULT 'none',
@@ -70,9 +69,7 @@ class DatabaseService {
         is_recurring INTEGER DEFAULT 0,
         recurrence_rule TEXT,
         has_reminder INTEGER DEFAULT 0,
-        reminder_date TEXT,
-        event_date TEXT,
-        end_date TEXT
+        reminder_date TEXT
       );
     `;
 
@@ -100,6 +97,37 @@ class DatabaseService {
     } catch {
       // Column already exists, ignore
     }
+
+    // Migration: Convert events to tasks and remove event columns
+    await this.migrateEventsToTasks();
+  }
+
+  private async migrateEventsToTasks(): Promise<void> {
+    if (!this.db) return;
+
+    // Check if item_type column exists (indicates old schema)
+    try {
+      const result = await this.db.query(`PRAGMA table_info(${TABLE_NAME})`);
+      const columns = result.values || [];
+      const hasItemType = columns.some((col: any) => col.name === 'item_type');
+      
+      if (hasItemType) {
+        // Convert events to tasks: set due_date from event_date where applicable
+        await this.db.execute(`
+          UPDATE ${TABLE_NAME} 
+          SET due_date = COALESCE(due_date, event_date, created_date)
+          WHERE item_type = 'event'
+        `);
+        
+        console.log('Migration: Converted events to tasks');
+        
+        // Note: SQLite doesn't support DROP COLUMN in older versions
+        // The columns will remain but be ignored. For a full migration,
+        // we would need to recreate the table.
+      }
+    } catch (error) {
+      console.log('Migration check skipped:', error);
+    }
   }
 
   async createItem(item: DashItem): Promise<void> {
@@ -108,9 +136,9 @@ class DatabaseService {
     const query = `
       INSERT INTO ${TABLE_NAME} (
         id, title, notes, created_date, location, links, photo_paths, comments,
-        item_type, is_completed, due_date, priority, tags, is_recurring,
-        recurrence_rule, has_reminder, reminder_date, event_date, end_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        is_completed, due_date, priority, tags, is_recurring,
+        recurrence_rule, has_reminder, reminder_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -122,7 +150,6 @@ class DatabaseService {
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
       JSON.stringify(item.comments || []),
-      item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
       item.priority,
@@ -131,8 +158,6 @@ class DatabaseService {
       item.recurrenceRule || null,
       item.hasReminder ? 1 : 0,
       item.reminderDate || null,
-      item.eventDate || null,
-      item.endDate || null,
     ];
 
     await this.db.run(query, values);
@@ -166,9 +191,9 @@ class DatabaseService {
     const query = `
       UPDATE ${TABLE_NAME} SET
         title = ?, notes = ?, location = ?, links = ?, photo_paths = ?, comments = ?,
-        item_type = ?, is_completed = ?, due_date = ?, priority = ?,
+        is_completed = ?, due_date = ?, priority = ?,
         tags = ?, is_recurring = ?, recurrence_rule = ?, has_reminder = ?,
-        reminder_date = ?, event_date = ?, end_date = ?, updated_date = ?
+        reminder_date = ?, updated_date = ?
       WHERE id = ?
     `;
 
@@ -179,7 +204,6 @@ class DatabaseService {
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
       JSON.stringify(item.comments || []),
-      item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
       item.priority,
@@ -188,8 +212,6 @@ class DatabaseService {
       item.recurrenceRule || null,
       item.hasReminder ? 1 : 0,
       item.reminderDate || null,
-      item.eventDate || null,
-      item.endDate || null,
       new Date().toISOString(), // Always set updated_date on update
       item.id,
     ];
@@ -214,17 +236,14 @@ class DatabaseService {
       links: JSON.parse(row.links || '[]'),
       photoPaths: JSON.parse(row.photo_paths || '[]'),
       comments: JSON.parse(row.comments || '[]'),
-      itemType: row.item_type,
       isCompleted: row.is_completed === 1,
       dueDate: row.due_date || undefined,
-      priority: row.priority,
+      priority: row.priority || 'none',
       tags: JSON.parse(row.tags || '[]'),
       isRecurring: row.is_recurring === 1,
       recurrenceRule: row.recurrence_rule || undefined,
       hasReminder: row.has_reminder === 1,
       reminderDate: row.reminder_date || undefined,
-      eventDate: row.event_date || undefined,
-      endDate: row.end_date || undefined,
     };
   }
 
@@ -294,7 +313,6 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
         priority: 'high',
@@ -312,7 +330,6 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
         priority: 'medium',
@@ -330,7 +347,6 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: true,
         dueDate: daysFromNow(0),
         priority: 'low',
@@ -348,7 +364,6 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(2),
         priority: 'medium',
@@ -366,7 +381,6 @@ class DatabaseService {
         links: ['https://expense.company.com/submit', 'https://docs.company.com/expense-policy'],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(3),
         priority: 'high',
@@ -394,7 +408,6 @@ class DatabaseService {
             createdDate: daysFromNow(-3),
           },
         ],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(5),
         priority: 'low',
@@ -411,7 +424,6 @@ class DatabaseService {
         links: ['https://meet.google.com/abc-defg-hij'],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
         priority: 'medium',
@@ -436,7 +448,6 @@ class DatabaseService {
             createdDate: daysFromNow(-2),
           },
         ],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(7),
         priority: 'medium',
@@ -446,7 +457,7 @@ class DatabaseService {
         hasReminder: true,
         reminderDate: daysFromNow(6),
       },
-      // Events
+      // More upcoming tasks
       {
         id: crypto.randomUUID(),
         title: 'Coffee with Sarah',
@@ -462,14 +473,13 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
-        itemType: 'event',
         isCompleted: false,
-        priority: 'none',
+        priority: 'medium',
         tags: ['social'],
         isRecurring: false,
         hasReminder: true,
         reminderDate: daysFromNow(1),
-        eventDate: daysFromNow(1),
+        dueDate: daysFromNow(1),
       },
       {
         id: crypto.randomUUID(),
@@ -491,15 +501,13 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
-        itemType: 'event',
         isCompleted: false,
-        priority: 'none',
+        priority: 'high',
         tags: ['work'],
         isRecurring: false,
         hasReminder: true,
         reminderDate: daysFromNow(3),
-        eventDate: daysFromNow(4),
-        endDate: daysFromNow(4),
+        dueDate: daysFromNow(4),
       },
       {
         id: crypto.randomUUID(),
@@ -510,13 +518,12 @@ class DatabaseService {
         links: ['https://alltrails.com/trail/mount-tam', 'https://weather.com/mount-tam'],
         photoPaths: [],
         comments: [],
-        itemType: 'event',
         isCompleted: false,
-        priority: 'none',
+        priority: 'low',
         tags: ['personal', 'outdoors'],
         isRecurring: false,
         hasReminder: false,
-        eventDate: daysFromNow(6),
+        dueDate: daysFromNow(6),
       },
       // Overdue task for visual variety
       {
@@ -528,7 +535,6 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(-1),
         priority: 'high',

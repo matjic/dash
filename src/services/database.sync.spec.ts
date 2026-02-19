@@ -13,7 +13,6 @@ import {
   DASH_ITEMS_COLUMNS, 
   COLUMN_ORDER, 
   SIRI_TASK_DEFAULTS,
-  SIRI_EVENT_DEFAULTS,
   DB_NAME,
   TABLE_NAME,
 } from './database.schema';
@@ -27,7 +26,7 @@ describe('Database Schema Sync', () => {
   describe('Schema Definition', () => {
     it('should have all required columns defined', () => {
       const requiredColumns = [
-        'id', 'title', 'created_date', 'item_type', 'is_completed', 'priority',
+        'id', 'title', 'created_date', 'is_completed', 'priority',
         'is_recurring', 'has_reminder'
       ];
       
@@ -91,10 +90,10 @@ describe('Database Schema Sync', () => {
     });
 
     it('should bind correct number of parameters for task', () => {
-      // Count unique parameter positions in createTask (e.g., "statement, 1," through "statement, 19,")
-      const taskSection = swiftContent.match(/func createTask[\s\S]*?func createEvent/);
+      // Count unique parameter positions in createTask
+      const taskSection = swiftContent.match(/func createTask[\s\S]*?(?=func |$)/);
       if (taskSection) {
-        // Find all unique parameter indices (1-19)
+        // Find all unique parameter indices
         const paramIndices = new Set<number>();
         const matches = taskSection[0].matchAll(/sqlite3_bind_\w+\(statement,\s*(\d+)/g);
         for (const match of matches) {
@@ -102,24 +101,6 @@ describe('Database Schema Sync', () => {
         }
         expect(paramIndices.size).toBe(COLUMN_ORDER.length);
       }
-    });
-
-    it('should bind correct number of parameters for event', () => {
-      // Count unique parameter positions in createEvent
-      const eventSection = swiftContent.match(/func createEvent[\s\S]*?func isDatabaseAvailable/);
-      if (eventSection) {
-        const paramIndices = new Set<number>();
-        const matches = eventSection[0].matchAll(/sqlite3_bind_\w+\(statement,\s*(\d+)/g);
-        for (const match of matches) {
-          paramIndices.add(parseInt(match[1]));
-        }
-        expect(paramIndices.size).toBe(COLUMN_ORDER.length);
-      }
-    });
-
-    it('should use correct item_type values', () => {
-      expect(swiftContent).toContain('"task"');
-      expect(swiftContent).toContain('"event"');
     });
 
     it('should use correct default priority', () => {
@@ -174,14 +155,6 @@ describe('Database Schema Sync', () => {
   });
 
   describe('Siri Defaults', () => {
-    it('should have task defaults with correct item_type', () => {
-      expect(SIRI_TASK_DEFAULTS.item_type).toBe('task');
-    });
-
-    it('should have event defaults with correct item_type', () => {
-      expect(SIRI_EVENT_DEFAULTS.item_type).toBe('event');
-    });
-
     it('should have empty JSON arrays as strings', () => {
       expect(SIRI_TASK_DEFAULTS.links).toBe('[]');
       expect(SIRI_TASK_DEFAULTS.photo_paths).toBe('[]');
@@ -191,7 +164,6 @@ describe('Database Schema Sync', () => {
 
     it('should have default priority as none', () => {
       expect(SIRI_TASK_DEFAULTS.priority).toBe('none');
-      expect(SIRI_EVENT_DEFAULTS.priority).toBe('none');
     });
 
     it('should have boolean fields as 0', () => {
@@ -219,11 +191,6 @@ describe('Database Schema Sync', () => {
     it('should map created_date to createdDate in TypeScript', () => {
       expect(tsContent).toContain('created_date');
       expect(tsContent).toContain('createdDate');
-    });
-
-    it('should map item_type to itemType in TypeScript', () => {
-      expect(tsContent).toContain('item_type');
-      expect(tsContent).toContain('itemType');
     });
 
     it('should map photo_paths to photoPaths in TypeScript', () => {

@@ -54,29 +54,10 @@ describe('ItemRow', () => {
       createdDate: '2026-01-18T12:00:00.000Z',
       links: [],
       photoPaths: [],
-      itemType: 'task',
       isCompleted: false,
       dueDate: '2026-01-20T10:00:00.000Z',
       priority: 'medium',
       tags: ['work'],
-      isRecurring: false,
-      hasReminder: false,
-      ...overrides,
-    };
-  }
-
-  function createMockEvent(overrides: Partial<DashItem> = {}): DashItem {
-    return {
-      id: 'test-id-2',
-      title: 'Test Event',
-      createdDate: '2026-01-18T12:00:00.000Z',
-      links: [],
-      photoPaths: [],
-      itemType: 'event',
-      isCompleted: false,
-      eventDate: '2026-01-22T14:00:00.000Z',
-      priority: 'none',
-      tags: [],
       isRecurring: false,
       hasReminder: false,
       ...overrides,
@@ -112,16 +93,6 @@ describe('ItemRow', () => {
     expect(icon.exists()).toBe(true);
   });
 
-  it('should display event icon for events', () => {
-    const event = createMockEvent();
-    const wrapper = mount(ItemRow, {
-      props: { item: event },
-    });
-
-    const icon = wrapper.find('.ion-icon');
-    expect(icon.exists()).toBe(true);
-  });
-
   it('should display priority dot for high priority tasks', () => {
     const task = createMockTask({ priority: 'high' });
     const wrapper = mount(ItemRow, {
@@ -140,16 +111,6 @@ describe('ItemRow', () => {
 
     const priorityDot = wrapper.find('.priority-dot.priority-medium');
     expect(priorityDot.exists()).toBe(true);
-  });
-
-  it('should not display priority dot for events', () => {
-    const event = createMockEvent();
-    const wrapper = mount(ItemRow, {
-      props: { item: event },
-    });
-
-    const priorityDot = wrapper.find('.priority-dot');
-    expect(priorityDot.exists()).toBe(false);
   });
 
   it('should not display priority dot for tasks with no priority', () => {
@@ -233,14 +194,6 @@ describe('ItemRow', () => {
     // Skipped: Complex Ionic swipe action - test in E2E instead
   });
 
-  it.skip('should emit convertToEvent for tasks', async () => {
-    // Skipped: Complex Ionic swipe action - test in E2E instead
-  });
-
-  it.skip('should emit convertToTask for events', async () => {
-    // Skipped: Complex Ionic swipe action - test in E2E instead
-  });
-
   it('should show completed styling for completed tasks', () => {
     const task = createMockTask({ isCompleted: true });
     const wrapper = mount(ItemRow, {
@@ -274,17 +227,5 @@ describe('ItemRow', () => {
 
     // Should show "Tomorrow at" in the text
     expect(wrapper.text()).toContain('Tomorrow');
-  });
-
-  it('should format event date display', () => {
-    const event = createMockEvent({
-      eventDate: '2026-01-18T14:30:00.000Z', // Today
-    });
-    const wrapper = mount(ItemRow, {
-      props: { item: event },
-    });
-
-    // Should show "Today at" in the text
-    expect(wrapper.text()).toContain('Today');
   });
 });

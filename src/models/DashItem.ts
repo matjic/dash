@@ -1,4 +1,3 @@
-export type ItemType = 'task' | 'event';
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 export type RecurrenceRule = 'daily' | 'weekly' | 'monthly';
 
@@ -20,9 +19,8 @@ export interface DashItem {
   links: string[];
   photoPaths: string[];
   comments: Comment[];
-  itemType: ItemType;
 
-  // Task-specific
+  // Task fields
   isCompleted: boolean;
   dueDate?: string;
   priority: Priority;
@@ -31,24 +29,20 @@ export interface DashItem {
   recurrenceRule?: RecurrenceRule;
   hasReminder: boolean;
   reminderDate?: string;
-
-  // Event-specific
-  eventDate?: string;
-  endDate?: string;
 }
 
 export function getRelevantDate(item: DashItem): string | undefined {
-  return item.itemType === 'task' ? item.dueDate : item.eventDate;
+  return item.dueDate;
 }
 
 export function isOverdue(item: DashItem): boolean {
-  if (item.itemType !== 'task' || item.isCompleted || !item.dueDate) {
+  if (item.isCompleted || !item.dueDate) {
     return false;
   }
   return new Date(item.dueDate) < new Date();
 }
 
-export function createEmptyItem(type: ItemType = 'task'): DashItem {
+export function createEmptyItem(): DashItem {
   return {
     id: '',
     title: '',
@@ -58,7 +52,6 @@ export function createEmptyItem(type: ItemType = 'task'): DashItem {
     links: [],
     photoPaths: [],
     comments: [],
-    itemType: type,
     isCompleted: false,
     priority: 'none',
     tags: [],

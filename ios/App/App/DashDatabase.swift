@@ -37,7 +37,7 @@ func sqlite3_bind_int(_ stmt: SQLiteStatement?, _ index: Int32, _ value: Int32) 
 func sqlite3_bind_null(_ stmt: SQLiteStatement?, _ index: Int32) -> Int32
 
 /// Handles direct database access for Siri intents
-/// This allows creating tasks/events without opening the app
+/// This allows creating tasks without opening the app
 class DashDatabase {
     static let shared = DashDatabase()
     
@@ -97,9 +97,9 @@ class DashDatabase {
         let query = """
             INSERT INTO dash_items (
                 id, title, notes, created_date, location, links, photo_paths, comments,
-                item_type, is_completed, due_date, priority, tags, is_recurring,
-                recurrence_rule, has_reminder, reminder_date, event_date, end_date
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_completed, due_date, priority, tags, is_recurring,
+                recurrence_rule, has_reminder, reminder_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         
         var statement: SQLiteStatement?
@@ -120,92 +120,24 @@ class DashDatabase {
         _ = sqlite3_bind_text(statement, 6, "[]", -1, nil)                 // links (JSON)
         _ = sqlite3_bind_text(statement, 7, "[]", -1, nil)                 // photo_paths (JSON)
         _ = sqlite3_bind_text(statement, 8, "[]", -1, nil)                 // comments (JSON)
-        _ = sqlite3_bind_text(statement, 9, "task", -1, nil)               // item_type
-        _ = sqlite3_bind_int(statement, 10, 0)                             // is_completed
+        _ = sqlite3_bind_int(statement, 9, 0)                              // is_completed
         if let dueDateStr = dueDateStr {
-            _ = sqlite3_bind_text(statement, 11, dueDateStr, -1, nil)      // due_date
+            _ = sqlite3_bind_text(statement, 10, dueDateStr, -1, nil)      // due_date
         } else {
-            _ = sqlite3_bind_null(statement, 11)
+            _ = sqlite3_bind_null(statement, 10)
         }
-        _ = sqlite3_bind_text(statement, 12, priority, -1, nil)            // priority
-        _ = sqlite3_bind_text(statement, 13, "[]", -1, nil)                // tags (JSON)
-        _ = sqlite3_bind_int(statement, 14, 0)                             // is_recurring
-        _ = sqlite3_bind_null(statement, 15)                               // recurrence_rule
-        _ = sqlite3_bind_int(statement, 16, 0)                             // has_reminder
-        _ = sqlite3_bind_null(statement, 17)                               // reminder_date
-        _ = sqlite3_bind_null(statement, 18)                               // event_date
-        _ = sqlite3_bind_null(statement, 19)                               // end_date
+        _ = sqlite3_bind_text(statement, 11, priority, -1, nil)            // priority
+        _ = sqlite3_bind_text(statement, 12, "[]", -1, nil)                // tags (JSON)
+        _ = sqlite3_bind_int(statement, 13, 0)                             // is_recurring
+        _ = sqlite3_bind_null(statement, 14)                               // recurrence_rule
+        _ = sqlite3_bind_int(statement, 15, 0)                             // has_reminder
+        _ = sqlite3_bind_null(statement, 16)                               // reminder_date
         
         if sqlite3_step(statement) == SQLITE_DONE {
             print("DashDatabase: Successfully created task '\(title)'")
             return true
         } else {
             print("DashDatabase: Failed to insert task")
-            return false
-        }
-    }
-    
-    /// Create a new event in the database
-    func createEvent(title: String, eventDate: Date? = nil, endDate: Date? = nil) -> Bool {
-        guard openDatabase() else { return false }
-        defer { closeDatabase() }
-        
-        let id = UUID().uuidString
-        let createdDate = ISO8601DateFormatter().string(from: Date())
-        let eventDateStr = eventDate.map { ISO8601DateFormatter().string(from: $0) }
-        let endDateStr = endDate.map { ISO8601DateFormatter().string(from: $0) }
-        
-        let query = """
-            INSERT INTO dash_items (
-                id, title, notes, created_date, location, links, photo_paths, comments,
-                item_type, is_completed, due_date, priority, tags, is_recurring,
-                recurrence_rule, has_reminder, reminder_date, event_date, end_date
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
-        
-        var statement: SQLiteStatement?
-        
-        guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else {
-            print("DashDatabase: Failed to prepare statement")
-            return false
-        }
-        
-        defer { _ = sqlite3_finalize(statement) }
-        
-        // Bind parameters
-        _ = sqlite3_bind_text(statement, 1, id, -1, nil)                    // id
-        _ = sqlite3_bind_text(statement, 2, title, -1, nil)                 // title
-        _ = sqlite3_bind_null(statement, 3)                                 // notes
-        _ = sqlite3_bind_text(statement, 4, createdDate, -1, nil)          // created_date
-        _ = sqlite3_bind_null(statement, 5)                                 // location
-        _ = sqlite3_bind_text(statement, 6, "[]", -1, nil)                 // links (JSON)
-        _ = sqlite3_bind_text(statement, 7, "[]", -1, nil)                 // photo_paths (JSON)
-        _ = sqlite3_bind_text(statement, 8, "[]", -1, nil)                 // comments (JSON)
-        _ = sqlite3_bind_text(statement, 9, "event", -1, nil)              // item_type
-        _ = sqlite3_bind_int(statement, 10, 0)                             // is_completed
-        _ = sqlite3_bind_null(statement, 11)                               // due_date
-        _ = sqlite3_bind_text(statement, 12, "none", -1, nil)              // priority
-        _ = sqlite3_bind_text(statement, 13, "[]", -1, nil)                // tags (JSON)
-        _ = sqlite3_bind_int(statement, 14, 0)                             // is_recurring
-        _ = sqlite3_bind_null(statement, 15)                               // recurrence_rule
-        _ = sqlite3_bind_int(statement, 16, 0)                             // has_reminder
-        _ = sqlite3_bind_null(statement, 17)                               // reminder_date
-        if let eventDateStr = eventDateStr {
-            _ = sqlite3_bind_text(statement, 18, eventDateStr, -1, nil)    // event_date
-        } else {
-            _ = sqlite3_bind_null(statement, 18)
-        }
-        if let endDateStr = endDateStr {
-            _ = sqlite3_bind_text(statement, 19, endDateStr, -1, nil)      // end_date
-        } else {
-            _ = sqlite3_bind_null(statement, 19)
-        }
-        
-        if sqlite3_step(statement) == SQLITE_DONE {
-            print("DashDatabase: Successfully created event '\(title)'")
-            return true
-        } else {
-            print("DashDatabase: Failed to insert event")
             return false
         }
     }

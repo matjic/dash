@@ -15,7 +15,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: '2026-01-15T10:00:00.000Z',
         priority: 'none',
@@ -27,25 +26,6 @@ describe('DashItem', () => {
       expect(getRelevantDate(task)).toBe('2026-01-15T10:00:00.000Z');
     });
 
-    it('should return eventDate for events', () => {
-      const event: DashItem = {
-        id: '2',
-        title: 'Test Event',
-        createdDate: '2026-01-01T00:00:00.000Z',
-        links: [],
-        photoPaths: [],
-        itemType: 'event',
-        isCompleted: false,
-        eventDate: '2026-01-20T14:00:00.000Z',
-        priority: 'none',
-        tags: [],
-        isRecurring: false,
-        hasReminder: false,
-      };
-
-      expect(getRelevantDate(event)).toBe('2026-01-20T14:00:00.000Z');
-    });
-
     it('should return undefined for task without dueDate', () => {
       const task: DashItem = {
         id: '3',
@@ -53,7 +33,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -62,24 +41,6 @@ describe('DashItem', () => {
       };
 
       expect(getRelevantDate(task)).toBeUndefined();
-    });
-
-    it('should return undefined for event without eventDate', () => {
-      const event: DashItem = {
-        id: '4',
-        title: 'Event without date',
-        createdDate: '2026-01-01T00:00:00.000Z',
-        links: [],
-        photoPaths: [],
-        itemType: 'event',
-        isCompleted: false,
-        priority: 'none',
-        tags: [],
-        isRecurring: false,
-        hasReminder: false,
-      };
-
-      expect(getRelevantDate(event)).toBeUndefined();
     });
   });
 
@@ -101,7 +62,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: '2026-01-15T10:00:00.000Z', // Past date
         priority: 'none',
@@ -120,7 +80,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: '2026-01-25T10:00:00.000Z', // Future date
         priority: 'none',
@@ -139,7 +98,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: true,
         dueDate: '2026-01-15T10:00:00.000Z', // Past date
         priority: 'none',
@@ -158,7 +116,6 @@ describe('DashItem', () => {
         createdDate: '2026-01-01T00:00:00.000Z',
         links: [],
         photoPaths: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -167,25 +124,6 @@ describe('DashItem', () => {
       };
 
       expect(isOverdue(task)).toBe(false);
-    });
-
-    it('should return false for events (even with past eventDate)', () => {
-      const event: DashItem = {
-        id: '5',
-        title: 'Past Event',
-        createdDate: '2026-01-01T00:00:00.000Z',
-        links: [],
-        photoPaths: [],
-        itemType: 'event',
-        isCompleted: false,
-        eventDate: '2026-01-10T14:00:00.000Z', // Past date
-        priority: 'none',
-        tags: [],
-        isRecurring: false,
-        hasReminder: false,
-      };
-
-      expect(isOverdue(event)).toBe(false);
     });
   });
 
@@ -205,7 +143,6 @@ describe('DashItem', () => {
       expect(item.id).toBe('');
       expect(item.title).toBe('');
       expect(item.notes).toBe('');
-      expect(item.itemType).toBe('task');
       expect(item.isCompleted).toBe(false);
       expect(item.priority).toBe('none');
       expect(item.tags).toEqual([]);
@@ -214,15 +151,6 @@ describe('DashItem', () => {
       expect(item.isRecurring).toBe(false);
       expect(item.hasReminder).toBe(false);
       expect(item.location).toBe('');
-    });
-
-    it('should create an empty event when type is "event"', () => {
-      const item = createEmptyItem('event');
-
-      expect(item.itemType).toBe('event');
-      expect(item.id).toBe('');
-      expect(item.title).toBe('');
-      expect(item.isCompleted).toBe(false);
     });
 
     it('should have a valid createdDate timestamp', () => {

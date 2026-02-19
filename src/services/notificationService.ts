@@ -48,7 +48,6 @@ class NotificationService {
             },
             extra: {
               itemId: item.id,
-              itemType: item.itemType,
             },
           },
         ],
@@ -82,26 +81,18 @@ class NotificationService {
    * Format notification body with relevant date/time info
    */
   private formatNotificationBody(item: DashItem): string {
-    const isEvent = item.itemType === 'event';
-    const relevantDate = isEvent ? item.eventDate : item.dueDate;
-
-    if (relevantDate) {
-      const formatted = new Date(relevantDate).toLocaleString([], {
+    if (item.dueDate) {
+      const formatted = new Date(item.dueDate).toLocaleString([], {
         month: 'short',
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
       });
-
-      if (isEvent) {
-        return `Event starts ${formatted}`;
-      } else {
-        return `Due ${formatted}`;
-      }
+      return `Due ${formatted}`;
     }
 
     // Fallback to notes or generic message
-    return item.notes || (isEvent ? 'Event reminder' : 'Task reminder');
+    return item.notes || 'Task reminder';
   }
 
   /**

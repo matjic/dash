@@ -44,49 +44,6 @@ struct AddTaskIntent: AppIntent {
     }
 }
 
-// MARK: - Add Event Intent (Siri prompts for title, saves without opening app)
-
-struct AddEventIntent: AppIntent {
-    static var title: LocalizedStringResource = "Add Event to Dash"
-    static var description = IntentDescription("Create a new event in Dash")
-    
-    // Don't open app - save in background for hands-free use
-    static var openAppWhenRun: Bool = false
-    
-    @Parameter(
-        title: "Event",
-        description: "What's the event?",
-        requestValueDialog: IntentDialog("What's the event?")
-    )
-    var eventTitle: String
-    
-    static var parameterSummary: some ParameterSummary {
-        Summary("Add \(\.$eventTitle) to Dash")
-    }
-    
-    func perform() async throws -> some IntentResult & ProvidesDialog {
-        // Try to save directly to database
-        if DashDatabase.shared.isDatabaseAvailable() {
-            let success = DashDatabase.shared.createEvent(title: eventTitle)
-            if success {
-                return .result(dialog: "Added '\(eventTitle)' to your events")
-            }
-        }
-        
-        // Fallback: open app if database not available (first launch)
-        var urlComponents = URLComponents()
-        urlComponents.scheme = "dash"
-        urlComponents.host = "add-event"
-        urlComponents.queryItems = [URLQueryItem(name: "title", value: eventTitle)]
-        
-        if let url = urlComponents.url {
-            await UIApplication.shared.open(url)
-        }
-        
-        return .result(dialog: "Adding '\(eventTitle)' to Dash")
-    }
-}
-
 // MARK: - Show Timeline Intent
 
 struct ShowTimelineIntent: AppIntent {
@@ -125,15 +82,13 @@ enum TimelineFilter: String, AppEnum {
     case today
     case all
     case tasks
-    case events
     
     static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Timeline Filter")
     
     static var caseDisplayRepresentations: [TimelineFilter: DisplayRepresentation] = [
         .today: "Today",
         .all: "All",
-        .tasks: "Tasks",
-        .events: "Events"
+        .tasks: "Tasks"
     ]
 }
 

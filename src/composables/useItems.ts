@@ -1,17 +1,13 @@
 import { ref, computed } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import type { DashItem } from '../models/DashItem';
-import { getRelevantDate } from '../models/DashItem';
 import { databaseService, setOnSeedComplete } from '../services/database';
 import { notificationService } from '../services/notificationService';
 import { recurrenceService } from '../services/recurrenceService';
 import { photoService } from '../services/photoService';
 
-export type FilterType = 'all' | 'tasks' | 'events';
-
 const items = ref<DashItem[]>([]);
 const searchText = ref('');
-const selectedFilter = ref<FilterType>('all');
 const showCompleted = ref(false);
 const isLoading = ref(false);
 const isInitialized = ref(false);
@@ -22,18 +18,9 @@ export function useItems() {
   const filteredItems = computed(() => {
     let result = [...items.value];
 
-    // Apply type filter
-    if (selectedFilter.value === 'tasks') {
-      result = result.filter((item) => item.itemType === 'task');
-    } else if (selectedFilter.value === 'events') {
-      result = result.filter((item) => item.itemType === 'event');
-    }
-
     // Filter out completed tasks unless showCompleted is true
     if (!showCompleted.value) {
-      result = result.filter((item) => 
-        item.itemType === 'event' || !item.isCompleted
-      );
+      result = result.filter((item) => !item.isCompleted);
     }
 
     // Apply search filter
@@ -49,27 +36,16 @@ export function useItems() {
       });
     }
 
-    // Sort items per spec 7.1
+    // Sort items: incomplete tasks first, then completed tasks
     result.sort((a, b) => {
-      // 1. Incomplete tasks first
-      // 2. Events
-      // 3. Completed tasks
-      const getCategory = (item: DashItem): number => {
-        if (item.itemType === 'task' && !item.isCompleted) return 0;
-        if (item.itemType === 'event') return 1;
-        return 2; // Completed tasks
-      };
-
-      const categoryA = getCategory(a);
-      const categoryB = getCategory(b);
-
-      if (categoryA !== categoryB) {
-        return categoryA - categoryB;
+      // Incomplete tasks first, completed tasks last
+      if (a.isCompleted !== b.isCompleted) {
+        return a.isCompleted ? 1 : -1;
       }
 
-      // Within same category, sort by relevant date ascending
-      const dateA = getRelevantDate(a);
-      const dateB = getRelevantDate(b);
+      // Within same category, sort by due date ascending
+      const dateA = a.dueDate;
+      const dateB = b.dueDate;
 
       if (!dateA && !dateB) return 0;
       if (!dateA) return 1;
@@ -177,7 +153,7 @@ export function useItems() {
 
   async function toggleComplete(id: string): Promise<void> {
     const item = items.value.find((i) => i.id === id);
-    if (!item || item.itemType !== 'task') return;
+    if (!item) return;
 
     const updatedItem: DashItem = {
       ...item,
@@ -192,43 +168,8 @@ export function useItems() {
     }
   }
 
-  async function convertToEvent(id: string): Promise<void> {
-    const item = items.value.find((i) => i.id === id);
-    if (!item || item.itemType !== 'task') return;
-
-    const updatedItem: DashItem = {
-      ...item,
-      itemType: 'event',
-      eventDate: item.dueDate || new Date().toISOString(),
-      dueDate: undefined,
-      isCompleted: false,
-    };
-
-    await updateItem(updatedItem);
-  }
-
-  async function convertToTask(id: string): Promise<void> {
-    const item = items.value.find((i) => i.id === id);
-    if (!item || item.itemType !== 'event') return;
-
-    const updatedItem: DashItem = {
-      ...item,
-      itemType: 'task',
-      dueDate: item.eventDate,
-      eventDate: undefined,
-      endDate: undefined,
-      isCompleted: false,
-    };
-
-    await updateItem(updatedItem);
-  }
-
   function setSearchText(text: string): void {
     searchText.value = text;
-  }
-
-  function setFilter(filter: FilterType): void {
-    selectedFilter.value = filter;
   }
 
   async function toggleShowCompleted(): Promise<void> {
@@ -241,7 +182,6 @@ export function useItems() {
     items,
     filteredItems,
     searchText,
-    selectedFilter,
     showCompleted,
     isLoading,
     isInitialized,
@@ -253,10 +193,7 @@ export function useItems() {
     updateItem,
     deleteItem,
     toggleComplete,
-    convertToEvent,
-    convertToTask,
     setSearchText,
-    setFilter,
     toggleShowCompleted,
   };
 }

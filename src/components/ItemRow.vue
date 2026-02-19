@@ -1,23 +1,5 @@
 <template>
   <ion-item-sliding ref="slidingItem">
-    <!-- Left swipe options -->
-    <ion-item-options side="start">
-      <ion-item-option
-        v-if="item.itemType === 'task'"
-        color="primary"
-        @click="onConvertToEvent"
-      >
-        <ion-icon slot="icon-only" :icon="calendarOutline" />
-      </ion-item-option>
-      <ion-item-option
-        v-else
-        color="primary"
-        @click="onConvertToTask"
-      >
-        <ion-icon slot="icon-only" :icon="checkmarkCircleOutline" />
-      </ion-item-option>
-    </ion-item-options>
-
     <!-- Main item content -->
     <ion-item
       :class="itemClasses"
@@ -28,13 +10,13 @@
       <!-- Type icon -->
       <ion-icon
         slot="start"
-        :icon="typeIcon"
+        :icon="checkmarkCircleOutline"
         :color="iconColor"
       />
 
       <!-- Priority indicator -->
       <div
-        v-if="item.itemType === 'task' && item.priority !== 'none'"
+        v-if="item.priority !== 'none'"
         class="priority-dot"
         :class="`priority-${item.priority}`"
         slot="start"
@@ -71,7 +53,6 @@
     <!-- Right swipe options -->
     <ion-item-options side="end">
       <ion-item-option
-        v-if="item.itemType === 'task'"
         :color="item.isCompleted ? 'warning' : 'success'"
         @click="onToggleComplete"
       >
@@ -101,7 +82,6 @@ import {
 import {
   checkmarkCircleOutline,
   checkmarkCircle,
-  calendarOutline,
   trashOutline,
   closeCircleOutline,
   locationOutline,
@@ -118,18 +98,12 @@ const emit = defineEmits<{
   click: [item: DashItem];
   toggleComplete: [id: string];
   delete: [id: string];
-  convertToEvent: [id: string];
-  convertToTask: [id: string];
 }>();
 
 const slidingItem = ref<InstanceType<typeof IonItemSliding> | null>(null);
 
-const typeIcon = computed(() => {
-  return props.item.itemType === 'task' ? checkmarkCircleOutline : calendarOutline;
-});
-
 const iconColor = computed(() => {
-  if (props.item.itemType === 'task' && props.item.isCompleted) {
+  if (props.item.isCompleted) {
     return 'success';
   }
   if (isOverdue(props.item)) {
@@ -193,16 +167,6 @@ function onToggleComplete() {
 function onDelete() {
   closeSliding();
   emit('delete', props.item.id);
-}
-
-function onConvertToEvent() {
-  closeSliding();
-  emit('convertToEvent', props.item.id);
-}
-
-function onConvertToTask() {
-  closeSliding();
-  emit('convertToTask', props.item.id);
 }
 </script>
 

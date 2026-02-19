@@ -66,10 +66,9 @@ describe('useItems', () => {
     mockDbItems.length = 0;
 
     // Reset the composable state by clearing items
-    const { items, searchText, selectedFilter, showCompleted, toggleShowCompleted } = useItems();
+    const { items, searchText, showCompleted, toggleShowCompleted } = useItems();
     items.value = [];
     searchText.value = '';
-    selectedFilter.value = 'all';
     
     // Reset showCompleted to false if it's currently true
     if (showCompleted.value) {
@@ -84,7 +83,6 @@ describe('useItems', () => {
       title: 'Test Task',
       links: [],
       photoPaths: [],
-      itemType: 'task',
       isCompleted: false,
       dueDate: '2026-01-20T10:00:00.000Z',
       priority: 'medium',
@@ -95,31 +93,10 @@ describe('useItems', () => {
     };
   }
 
-  function createTestEvent(overrides: Partial<DashItem> = {}): Omit<DashItem, 'id' | 'createdDate'> {
-    return {
-      title: 'Test Event',
-      links: [],
-      photoPaths: [],
-      itemType: 'event',
-      isCompleted: false,
-      eventDate: '2026-01-22T14:00:00.000Z',
-      priority: 'none',
-      tags: [],
-      isRecurring: false,
-      hasReminder: false,
-      ...overrides,
-    };
-  }
-
   describe('state initialization', () => {
     it('should have empty items array initially', () => {
       const { items } = useItems();
       expect(items.value).toEqual([]);
-    });
-
-    it('should have default filter set to "all"', () => {
-      const { selectedFilter } = useItems();
-      expect(selectedFilter.value).toBe('all');
     });
 
     it('should have empty search text initially', () => {
@@ -206,95 +183,9 @@ describe('useItems', () => {
 
       expect(items.value[0].isCompleted).toBe(false);
     });
-
-    it('should not toggle events', async () => {
-      const { createItem, toggleComplete, items } = useItems();
-
-      const event = await createItem(createTestEvent());
-
-      await toggleComplete(event.id);
-
-      expect(items.value[0].isCompleted).toBe(false);
-    });
-  });
-
-  describe('convertToEvent', () => {
-    it('should convert task to event', async () => {
-      const { createItem, convertToEvent, items } = useItems();
-
-      const task = await createItem(
-        createTestTask({
-          dueDate: '2026-01-20T10:00:00.000Z',
-        })
-      );
-
-      await convertToEvent(task.id);
-
-      expect(items.value[0].itemType).toBe('event');
-      expect(items.value[0].eventDate).toBe('2026-01-20T10:00:00.000Z');
-      expect(items.value[0].dueDate).toBeUndefined();
-    });
-  });
-
-  describe('convertToTask', () => {
-    it('should convert event to task', async () => {
-      const { createItem, convertToTask, items } = useItems();
-
-      const event = await createItem(
-        createTestEvent({
-          eventDate: '2026-01-22T14:00:00.000Z',
-        })
-      );
-
-      await convertToTask(event.id);
-
-      expect(items.value[0].itemType).toBe('task');
-      expect(items.value[0].dueDate).toBe('2026-01-22T14:00:00.000Z');
-      expect(items.value[0].eventDate).toBeUndefined();
-    });
   });
 
   describe('filteredItems', () => {
-    describe('type filtering', () => {
-      it('should show all items when filter is "all"', async () => {
-        const { createItem, filteredItems, setFilter } = useItems();
-
-        await createItem(createTestTask({ title: 'Task' }));
-        await createItem(createTestEvent({ title: 'Event' }));
-
-        setFilter('all');
-        await nextTick();
-
-        expect(filteredItems.value).toHaveLength(2);
-      });
-
-      it('should show only tasks when filter is "tasks"', async () => {
-        const { createItem, filteredItems, setFilter } = useItems();
-
-        await createItem(createTestTask({ title: 'Task' }));
-        await createItem(createTestEvent({ title: 'Event' }));
-
-        setFilter('tasks');
-        await nextTick();
-
-        expect(filteredItems.value).toHaveLength(1);
-        expect(filteredItems.value[0].itemType).toBe('task');
-      });
-
-      it('should show only events when filter is "events"', async () => {
-        const { createItem, filteredItems, setFilter } = useItems();
-
-        await createItem(createTestTask({ title: 'Task' }));
-        await createItem(createTestEvent({ title: 'Event' }));
-
-        setFilter('events');
-        await nextTick();
-
-        expect(filteredItems.value).toHaveLength(1);
-        expect(filteredItems.value[0].itemType).toBe('event');
-      });
-    });
-
     describe('search filtering', () => {
       it('should filter by title', async () => {
         const { createItem, filteredItems, setSearchText } = useItems();
@@ -373,35 +264,6 @@ describe('useItems', () => {
     });
 
     describe('sorting', () => {
-      it('should sort incomplete tasks before events', async () => {
-        const { createItem, filteredItems } = useItems();
-
-        await createItem(createTestEvent({ title: 'Event', eventDate: '2026-01-20T10:00:00.000Z' }));
-        await createItem(createTestTask({ title: 'Incomplete Task', isCompleted: false, dueDate: '2026-01-21T10:00:00.000Z' }));
-
-        await nextTick();
-
-        expect(filteredItems.value[0].title).toBe('Incomplete Task');
-        expect(filteredItems.value[1].title).toBe('Event');
-      });
-
-      it('should sort events before completed tasks', async () => {
-        const { createItem, filteredItems, toggleShowCompleted, showCompleted } = useItems();
-
-        // Enable showing completed tasks so we can test the sorting
-        if (!showCompleted.value) {
-          await toggleShowCompleted();
-        }
-
-        await createItem(createTestTask({ title: 'Completed Task', isCompleted: true, dueDate: '2026-01-20T10:00:00.000Z' }));
-        await createItem(createTestEvent({ title: 'Event', eventDate: '2026-01-21T10:00:00.000Z' }));
-
-        await nextTick();
-
-        expect(filteredItems.value[0].title).toBe('Event');
-        expect(filteredItems.value[1].title).toBe('Completed Task');
-      });
-
       it('should sort by date within same category (ascending)', async () => {
         const { createItem, filteredItems } = useItems();
 
@@ -436,21 +298,6 @@ describe('useItems', () => {
       setSearchText('test query');
 
       expect(searchText.value).toBe('test query');
-    });
-  });
-
-  describe('setFilter', () => {
-    it('should update selectedFilter value', () => {
-      const { selectedFilter, setFilter } = useItems();
-
-      setFilter('tasks');
-      expect(selectedFilter.value).toBe('tasks');
-
-      setFilter('events');
-      expect(selectedFilter.value).toBe('events');
-
-      setFilter('all');
-      expect(selectedFilter.value).toBe('all');
     });
   });
 });
