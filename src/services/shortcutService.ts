@@ -1,6 +1,7 @@
 import { AppShortcuts } from '@capawesome/capacitor-app-shortcuts';
 import { Capacitor } from '@capacitor/core';
 import type { Router } from 'vue-router';
+import { processPendingShares, setPendingSharedData } from './shareService';
 
 export type ShortcutId = 'add-task' | 'add-event' | 'show-today';
 
@@ -117,6 +118,11 @@ export async function handleDeepLink(url: string, router: Router): Promise<boole
         await router.push({ name: 'Timeline', query: { filter: params.filter } });
         return true;
 
+      case 'share':
+        // Handle incoming shared content from Share Extension
+        await handleShareDeepLink(router);
+        return true;
+
       default:
         console.warn('Unknown deep link action:', action);
         return false;
@@ -124,5 +130,36 @@ export async function handleDeepLink(url: string, router: Router): Promise<boole
   } catch (error) {
     console.error('Failed to handle deep link:', error);
     return false;
+  }
+}
+
+/**
+ * Handle the dash://share deep link from the Share Extension
+ */
+async function handleShareDeepLink(router: Router): Promise<void> {
+  try {
+    // Process shared content from the Share Extension
+    const sharedData = await processPendingShares();
+    
+    if (sharedData) {
+      // Store the shared data for ItemDetail to consume
+      setPendingSharedData(sharedData);
+      
+      // Navigate to new item with shared flag
+      await router.push({
+        name: 'ItemDetail',
+        params: { id: 'new' },
+        query: { shared: 'true' },
+      });
+    } else {
+      console.log('No shared data found, navigating to new item anyway');
+      // Still navigate to new item even if no data was found
+      await router.push({
+        name: 'ItemDetail',
+        params: { id: 'new' },
+      });
+    }
+  } catch (error) {
+    console.error('Error handling share deep link:', error);
   }
 }

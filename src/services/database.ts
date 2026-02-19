@@ -100,6 +100,13 @@ class DatabaseService {
     } catch {
       // Column already exists, ignore
     }
+
+    // Add attachments column for existing databases (migration)
+    try {
+      await this.db.execute(`ALTER TABLE ${TABLE_NAME} ADD COLUMN attachments TEXT`);
+    } catch {
+      // Column already exists, ignore
+    }
   }
 
   async createItem(item: DashItem): Promise<void> {
@@ -108,9 +115,9 @@ class DatabaseService {
     const query = `
       INSERT INTO ${TABLE_NAME} (
         id, title, notes, created_date, location, links, photo_paths, comments,
-        item_type, is_completed, due_date, priority, tags, is_recurring,
+        attachments, item_type, is_completed, due_date, priority, tags, is_recurring,
         recurrence_rule, has_reminder, reminder_date, event_date, end_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -122,6 +129,7 @@ class DatabaseService {
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
       JSON.stringify(item.comments || []),
+      JSON.stringify(item.attachments || []),
       item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
@@ -166,7 +174,7 @@ class DatabaseService {
     const query = `
       UPDATE ${TABLE_NAME} SET
         title = ?, notes = ?, location = ?, links = ?, photo_paths = ?, comments = ?,
-        item_type = ?, is_completed = ?, due_date = ?, priority = ?,
+        attachments = ?, item_type = ?, is_completed = ?, due_date = ?, priority = ?,
         tags = ?, is_recurring = ?, recurrence_rule = ?, has_reminder = ?,
         reminder_date = ?, event_date = ?, end_date = ?, updated_date = ?
       WHERE id = ?
@@ -179,6 +187,7 @@ class DatabaseService {
       JSON.stringify(item.links),
       JSON.stringify(item.photoPaths),
       JSON.stringify(item.comments || []),
+      JSON.stringify(item.attachments || []),
       item.itemType,
       item.isCompleted ? 1 : 0,
       item.dueDate || null,
@@ -214,6 +223,7 @@ class DatabaseService {
       links: JSON.parse(row.links || '[]'),
       photoPaths: JSON.parse(row.photo_paths || '[]'),
       comments: JSON.parse(row.comments || '[]'),
+      attachments: JSON.parse(row.attachments || '[]'),
       itemType: row.item_type,
       isCompleted: row.is_completed === 1,
       dueDate: row.due_date || undefined,
@@ -294,6 +304,7 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -312,6 +323,7 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -330,6 +342,7 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: true,
         dueDate: daysFromNow(0),
@@ -348,6 +361,7 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(2),
@@ -366,6 +380,7 @@ class DatabaseService {
         links: ['https://expense.company.com/submit', 'https://docs.company.com/expense-policy'],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(3),
@@ -394,6 +409,7 @@ class DatabaseService {
             createdDate: daysFromNow(-3),
           },
         ],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(5),
@@ -411,6 +427,7 @@ class DatabaseService {
         links: ['https://meet.google.com/abc-defg-hij'],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(0),
@@ -436,6 +453,7 @@ class DatabaseService {
             createdDate: daysFromNow(-2),
           },
         ],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(7),
@@ -462,6 +480,7 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
+        attachments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -491,6 +510,7 @@ class DatabaseService {
             createdDate: daysFromNow(-1),
           },
         ],
+        attachments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -510,6 +530,7 @@ class DatabaseService {
         links: ['https://alltrails.com/trail/mount-tam', 'https://weather.com/mount-tam'],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'event',
         isCompleted: false,
         priority: 'none',
@@ -528,6 +549,7 @@ class DatabaseService {
         links: [],
         photoPaths: [],
         comments: [],
+        attachments: [],
         itemType: 'task',
         isCompleted: false,
         dueDate: daysFromNow(-1),

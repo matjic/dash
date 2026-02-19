@@ -10,6 +10,15 @@ export interface Comment {
   updatedDate?: string;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  path: string; // Relative path in Documents/attachments/
+  mimeType: string;
+  size: number; // File size in bytes
+  createdDate: string;
+}
+
 export interface DashItem {
   id: string;
   title: string;
@@ -20,6 +29,7 @@ export interface DashItem {
   links: string[];
   photoPaths: string[];
   comments: Comment[];
+  attachments: Attachment[];
   itemType: ItemType;
 
   // Task-specific
@@ -58,6 +68,7 @@ export function createEmptyItem(type: ItemType = 'task'): DashItem {
     links: [],
     photoPaths: [],
     comments: [],
+    attachments: [],
     itemType: type,
     isCompleted: false,
     priority: 'none',

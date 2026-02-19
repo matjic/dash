@@ -14,10 +14,15 @@
         </ion-buttons>
         <ion-title>{{ headerTitle }}</ion-title>
         <ion-buttons slot="end">
-          <!-- View mode: show Edit button -->
-          <ion-button v-if="isViewMode && isExistingItem" @click="enterEditMode">
-            Edit
-          </ion-button>
+          <!-- View mode: show Share and Edit buttons -->
+          <template v-if="isViewMode && isExistingItem">
+            <ion-button @click="shareItem">
+              <ion-icon slot="icon-only" :icon="shareOutline" />
+            </ion-button>
+            <ion-button @click="enterEditMode">
+              Edit
+            </ion-button>
+          </template>
           <!-- Edit mode: show Save button -->
           <ion-button v-else :strong="true" :disabled="!canSave" @click="onSave">
             Save
@@ -574,6 +579,7 @@ import {
   openOutline,
   logoGoogle,
   createOutline,
+  shareOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { AppLauncher } from '@capacitor/app-launcher';
@@ -582,6 +588,8 @@ import { useItems } from '../composables/useItems';
 import { photoService } from '../services/photoService';
 import { openLink } from '../services/linkService';
 import { generateGoogleCalendarLink, canGenerateCalendarLink } from '../services/calendarLinkService';
+import { shareItemService } from '../services/shareItemService';
+import { consumePendingSharedData } from '../services/shareService';
 import type { DashItem, Comment } from '../models/DashItem';
 import { createEmptyItem } from '../models/DashItem';
 import RichText from '../components/RichText.vue';
@@ -665,6 +673,23 @@ onMounted(async () => {
   } else {
     // New item - start in edit mode
     isViewMode.value = false;
+    
+    // Check for shared data from Share Extension
+    const queryShared = route.query.shared as string | undefined;
+    if (queryShared === 'true') {
+      const sharedData = consumePendingSharedData();
+      if (sharedData) {
+        // Pre-populate with shared content
+        item.title = sharedData.suggestedTitle;
+        item.notes = sharedData.notes;
+        item.links = sharedData.links;
+        item.photoPaths = sharedData.photoPaths;
+        item.attachments = sharedData.attachments;
+        
+        // Load photo URIs for the shared images
+        await loadPhotoUris();
+      }
+    }
     
     // Apply query parameters if present (from shortcuts/Siri)
     if (queryType === 'task' || queryType === 'event') {
@@ -769,6 +794,16 @@ async function addToGoogleCalendar() {
     // Open in external Safari (not in-app browser) so it has access
     // to the user's Google login session
     await AppLauncher.openUrl({ url });
+  }
+}
+
+async function shareItem() {
+  await Haptics.impact({ style: ImpactStyle.Light });
+  try {
+    await shareItemService.shareItem(item as DashItem);
+  } catch (error) {
+    // User cancelled share or error occurred
+    console.log('Share cancelled or error:', error);
   }
 }
 
