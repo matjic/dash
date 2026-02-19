@@ -96,6 +96,14 @@
                 <h2>{{ formatDate(item.endDate) }}</h2>
               </ion-label>
             </ion-item>
+
+            <ion-item v-if="item.hasReminder && item.reminderDate">
+              <ion-icon :icon="notificationsOutline" slot="start" color="warning" />
+              <ion-label>
+                <p>Reminder</p>
+                <h2>{{ formatDate(item.reminderDate) }}</h2>
+              </ion-label>
+            </ion-item>
           </template>
 
           <!-- Location -->
@@ -349,6 +357,18 @@
               <ion-label>End Date</ion-label>
               <ion-text slot="end" color="medium">
                 {{ item.endDate ? formatDate(item.endDate) : 'None' }}
+              </ion-text>
+            </ion-item>
+
+            <!-- Reminder -->
+            <ion-item>
+              <ion-toggle v-model="item.hasReminder" @ionChange="onEventReminderToggle">Reminder</ion-toggle>
+            </ion-item>
+
+            <ion-item v-if="item.hasReminder" button @click="pickReminderDate">
+              <ion-label>Reminder Time</ion-label>
+              <ion-text slot="end" color="medium">
+                {{ item.reminderDate ? formatDate(item.reminderDate) : 'Select time' }}
               </ion-text>
             </ion-item>
           </template>
@@ -694,6 +714,10 @@ onMounted(async () => {
     // Apply query parameters if present (from shortcuts/Siri)
     if (queryType === 'task' || queryType === 'event') {
       item.itemType = queryType;
+      // Enable reminder by default for new events
+      if (queryType === 'event') {
+        item.hasReminder = true;
+      }
     }
     if (queryTitle) {
       item.title = queryTitle;
@@ -739,26 +763,14 @@ function formatDate(dateString: string): string {
 function formatRelativeDate(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) {
-    return 'just now';
-  } else if (diffMins < 60) {
-    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
-  } else if (diffHours < 24) {
-    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-  } else if (diffDays < 7) {
-    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
-  } else {
-    return date.toLocaleDateString([], {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    });
-  }
+  
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 function getTheme(): 'light' | 'dark' {
@@ -906,7 +918,13 @@ async function pickEventDate() {
       },
     });
     if (result?.value) {
+      const hadPreviousDate = !!item.eventDate;
       item.eventDate = result.value;
+      // Update reminder time if reminder is enabled (default for new events)
+      // Force update if this is a new date selection
+      if (item.hasReminder) {
+        setDefaultEventReminder(!hadPreviousDate);
+      }
     }
   } catch (error) {
     console.log('Date picker cancelled or error:', error);
@@ -942,10 +960,45 @@ function onTypeChange() {
   if (item.itemType === 'event' && item.dueDate && !item.eventDate) {
     item.eventDate = item.dueDate;
     item.dueDate = undefined;
+    // Enable reminder by default for events
+    if (!isExistingItem.value) {
+      item.hasReminder = true;
+      setDefaultEventReminder();
+    }
   } else if (item.itemType === 'task' && item.eventDate && !item.dueDate) {
     item.dueDate = item.eventDate;
     item.eventDate = undefined;
     item.endDate = undefined;
+  }
+}
+
+/**
+ * Handle event reminder toggle - set default reminder time when enabled
+ */
+function onEventReminderToggle() {
+  if (item.hasReminder && item.itemType === 'event') {
+    setDefaultEventReminder();
+  }
+}
+
+/**
+ * Set the default reminder time for events (1 hour before event start)
+ * @param forceUpdate - If true, update reminder even if already set
+ */
+function setDefaultEventReminder(forceUpdate = false) {
+  if (item.eventDate && (forceUpdate || !item.reminderDate)) {
+    const eventTime = new Date(item.eventDate);
+    eventTime.setHours(eventTime.getHours() - 1); // 1 hour before
+    // Only set if it's in the future
+    if (eventTime > new Date()) {
+      item.reminderDate = eventTime.toISOString();
+    } else {
+      // If 1 hour before is in the past, set to event time
+      const eventDate = new Date(item.eventDate);
+      if (eventDate > new Date()) {
+        item.reminderDate = item.eventDate;
+      }
+    }
   }
 }
 
