@@ -164,15 +164,55 @@
             </ion-item>
           </template>
 
+          <!-- Actions -->
+          <template v-if="canGenerateCalendarLink(item)">
+            <ion-item-divider>
+              <ion-label>Actions</ion-label>
+            </ion-item-divider>
+            <ion-item button @click="addToGoogleCalendar">
+              <ion-icon :icon="logoGoogle" slot="start" color="primary" />
+              <ion-label>Add to Google Calendar</ion-label>
+              <ion-icon :icon="openOutline" slot="end" color="medium" />
+            </ion-item>
+          </template>
+
           <!-- Comments -->
           <ion-item-divider>
             <ion-label>Comments</ion-label>
-            <ion-button slot="end" fill="clear" size="small" @click="showAddComment">
-              <ion-icon slot="icon-only" :icon="chatbubbleOutline" />
-            </ion-button>
           </ion-item-divider>
-          <template v-if="item.comments && item.comments.length > 0">
-            <ion-item v-for="comment in item.comments" :key="comment.id" lines="full" class="comment-item">
+          
+          <!-- Add Comment Input -->
+          <ion-item lines="none" class="add-comment-container">
+            <div class="add-comment-box">
+              <textarea
+                v-model="newCommentText"
+                class="comment-textarea"
+                placeholder="Add a comment..."
+                rows="3"
+              ></textarea>
+              <div class="comment-actions">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  :disabled="!newCommentText.trim()"
+                  @click="handleAddCommentWithPhoto"
+                >
+                  <ion-icon slot="icon-only" :icon="cameraOutline" />
+                </ion-button>
+                <ion-button
+                  fill="solid"
+                  size="small"
+                  :disabled="!newCommentText.trim()"
+                  @click="handleAddComment"
+                >
+                  Add
+                </ion-button>
+              </div>
+            </div>
+          </ion-item>
+          
+          <template v-if="sortedComments.length > 0">
+            <ion-item v-for="comment in sortedComments" :key="comment.id" lines="full" class="comment-item">
               <ion-label class="ion-text-wrap">
                 <p class="comment-date">
                   {{ formatCommentDate(comment.createdDate) }}
@@ -196,20 +236,8 @@
             </ion-item>
           </template>
           <ion-item v-else lines="none">
-            <ion-label color="medium">No comments</ion-label>
+            <ion-label color="medium">No comments yet</ion-label>
           </ion-item>
-
-          <!-- Actions -->
-          <template v-if="canGenerateCalendarLink(item)">
-            <ion-item-divider>
-              <ion-label>Actions</ion-label>
-            </ion-item-divider>
-            <ion-item button @click="addToGoogleCalendar">
-              <ion-icon :icon="logoGoogle" slot="start" color="primary" />
-              <ion-label>Add to Google Calendar</ion-label>
-              <ion-icon :icon="openOutline" slot="end" color="medium" />
-            </ion-item>
-          </template>
         </ion-list>
       </template>
 
@@ -423,12 +451,40 @@
           <!-- Comments -->
           <ion-item-divider>
             <ion-label>Comments</ion-label>
-            <ion-button slot="end" fill="clear" size="small" @click="showAddComment">
-              <ion-icon slot="icon-only" :icon="chatbubbleOutline" />
-            </ion-button>
           </ion-item-divider>
-          <template v-if="item.comments && item.comments.length > 0">
-            <ion-item v-for="comment in item.comments" :key="comment.id" lines="full" class="comment-item">
+          
+          <!-- Add Comment Input -->
+          <ion-item lines="none" class="add-comment-container">
+            <div class="add-comment-box">
+              <textarea
+                v-model="newCommentText"
+                class="comment-textarea"
+                placeholder="Add a comment..."
+                rows="3"
+              ></textarea>
+              <div class="comment-actions">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  :disabled="!newCommentText.trim()"
+                  @click="handleAddCommentWithPhoto"
+                >
+                  <ion-icon slot="icon-only" :icon="cameraOutline" />
+                </ion-button>
+                <ion-button
+                  fill="solid"
+                  size="small"
+                  :disabled="!newCommentText.trim()"
+                  @click="handleAddComment"
+                >
+                  Add
+                </ion-button>
+              </div>
+            </div>
+          </ion-item>
+          
+          <template v-if="sortedComments.length > 0">
+            <ion-item v-for="comment in sortedComments" :key="comment.id" lines="full" class="comment-item">
               <ion-label class="ion-text-wrap">
                 <p class="comment-date">
                   {{ formatCommentDate(comment.createdDate) }}
@@ -451,8 +507,8 @@
               </ion-buttons>
             </ion-item>
           </template>
-          <ion-item v-else>
-            <ion-label color="medium">No comments</ion-label>
+          <ion-item v-else lines="none">
+            <ion-label color="medium">No comments yet</ion-label>
           </ion-item>
         </ion-list>
       </template>
@@ -513,7 +569,6 @@ import {
   locationOutline,
   openOutline,
   logoGoogle,
-  chatbubbleOutline,
   createOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -548,7 +603,18 @@ const commentPhotoUris = ref<Record<string, string>>({});
 const isPhotoViewerOpen = ref(false);
 const photoViewerIndex = ref(0);
 
+// New comment input state
+const newCommentText = ref('');
+
 const canSave = computed(() => item.title.trim().length > 0);
+
+// Comments sorted in reverse chronological order (newest first)
+const sortedComments = computed(() => {
+  if (!item.comments || item.comments.length === 0) return [];
+  return [...item.comments].sort((a, b) => {
+    return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+  });
+});
 
 const headerTitle = computed(() => {
   if (isViewMode.value && isExistingItem.value) {
@@ -910,44 +976,6 @@ function formatCommentDate(dateString: string): string {
   });
 }
 
-async function showAddComment() {
-  const alert = await alertController.create({
-    header: 'Add Comment',
-    inputs: [
-      {
-        name: 'text',
-        type: 'textarea',
-        placeholder: 'Enter your comment...',
-      },
-    ],
-    buttons: [
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
-      {
-        text: 'Add Photo',
-        handler: async (data) => {
-          const text = data.text?.trim();
-          if (!text) return false; // Keep alert open
-          await addCommentWithPhoto(text);
-        },
-      },
-      {
-        text: 'Add',
-        handler: (data) => {
-          const text = data.text?.trim();
-          if (text) {
-            addComment(text);
-          }
-        },
-      },
-    ],
-  });
-
-  await alert.present();
-}
-
 function addComment(text: string, imagePath?: string) {
   if (!item.comments) {
     item.comments = [];
@@ -1002,6 +1030,22 @@ async function addCommentWithPhoto(text: string) {
   });
 
   await actionSheet.present();
+}
+
+function handleAddComment() {
+  const text = newCommentText.value.trim();
+  if (text) {
+    addComment(text);
+    newCommentText.value = '';
+  }
+}
+
+async function handleAddCommentWithPhoto() {
+  const text = newCommentText.value.trim();
+  if (text) {
+    await addCommentWithPhoto(text);
+    newCommentText.value = '';
+  }
 }
 
 async function showEditComment(comment: Comment) {
@@ -1261,5 +1305,47 @@ ion-chip {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Add comment input styles */
+.add-comment-container {
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+.add-comment-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 12px;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.comment-textarea:focus {
+  border-color: var(--ion-color-primary);
+}
+
+.comment-textarea::placeholder {
+  color: var(--ion-color-medium);
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>
