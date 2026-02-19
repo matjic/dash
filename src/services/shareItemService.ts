@@ -1,398 +1,64 @@
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
+import { photoService } from './photoService';
 import type { DashItem } from '../models/DashItem';
 
 class ShareItemService {
   /**
-   * Share a DashItem via native share sheet as a rich note
-   * Creates a single HTML file with embedded images for a cohesive share experience
+   * Share a DashItem as plain text with separate image attachments
+   * This format is universally compatible with Notes, Messages, Mail, etc.
    */
-  async shareItem(item: DashItem): Promise<void> {
-    // On native platforms, create a rich HTML file with embedded images
-    if (Capacitor.isNativePlatform()) {
-      const htmlUri = await this.createShareableHtmlFile(item);
-      if (htmlUri) {
-        await Share.share({
-          title: item.title,
-          files: [htmlUri],
-          dialogTitle: `Share ${item.itemType === 'event' ? 'Event' : 'Task'}`,
-        });
-        
-        // Clean up after a delay to allow share to complete
-        setTimeout(() => this.cleanupTempFiles(), 5000);
-        return;
-      }
-    }
+  async shareAsText(item: DashItem): Promise<void> {
+    const text = this.formatItemAsPlainText(item);
+    const files = await this.getShareableFiles(item);
 
-    // Fallback to plain text sharing
     await Share.share({
       title: item.title,
-      text: this.formatItemAsPlainText(item),
-      dialogTitle: `Share ${item.itemType === 'event' ? 'Event' : 'Task'}`,
+      text,
+      files: files.length > 0 ? files : undefined,
+      dialogTitle: 'Share',
     });
   }
 
   /**
-   * Create a temporary HTML file for rich sharing with embedded images
+   * Export a DashItem as a formatted PDF with embedded images
    */
-  private async createShareableHtmlFile(item: DashItem): Promise<string | null> {
+  async exportAsPdf(item: DashItem): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      // Fallback to text sharing on web
+      await this.shareAsText(item);
+      return;
+    }
+
     try {
-      // Load images as base64 for embedding
-      const embeddedImages: string[] = [];
-      for (const photoPath of item.photoPaths) {
-        try {
-          const base64 = await this.getPhotoAsBase64(photoPath);
-          if (base64) {
-            embeddedImages.push(base64);
-          }
-        } catch (error) {
-          console.error('Failed to load photo for embedding:', error);
-        }
-      }
+      // Generate HTML with embedded images
+      const html = await this.generatePdfHtml(item);
+      const fileName = this.sanitizeFileName(item.title);
 
-      const html = this.generateHtml(item, embeddedImages);
-      const fileName = `${this.sanitizeFileName(item.title)}.html`;
-      
-      // Ensure tmp directory exists
-      try {
-        await Filesystem.mkdir({
-          path: 'tmp',
-          directory: Directory.Cache,
-          recursive: true,
-        });
-      } catch {
-        // Directory might exist
-      }
-      
-      await Filesystem.writeFile({
-        path: `tmp/${fileName}`,
-        data: html,
-        directory: Directory.Cache,
-        encoding: 'utf8' as any,
+      // Call native plugin to generate PDF
+      const { PdfGenerator } = await import('./pdfService');
+      const result = await PdfGenerator.generatePdf({
+        html,
+        fileName,
       });
+      const pdfUri = result.uri;
 
-      const result = await Filesystem.getUri({
-        path: `tmp/${fileName}`,
-        directory: Directory.Cache,
+      // Share the PDF file
+      await Share.share({
+        title: `${item.title}.pdf`,
+        files: [pdfUri],
+        dialogTitle: 'Export PDF',
       });
-
-      return result.uri;
     } catch (error) {
-      console.error('Failed to create shareable HTML file:', error);
-      return null;
+      console.error('Failed to export PDF:', error);
+      // Fallback to text sharing
+      await this.shareAsText(item);
     }
   }
 
   /**
-   * Get a photo as base64 data URI
-   */
-  private async getPhotoAsBase64(photoPath: string): Promise<string | null> {
-    try {
-      const result = await Filesystem.readFile({
-        path: photoPath,
-        directory: Directory.Documents,
-      });
-      
-      // result.data is already base64 on native platforms
-      if (typeof result.data === 'string') {
-        return `data:image/jpeg;base64,${result.data}`;
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to read photo as base64:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Sanitize a string for use as a filename
-   */
-  private sanitizeFileName(name: string): string {
-    return name
-      .replace(/[^a-zA-Z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .substring(0, 50) || 'dash-item';
-  }
-
-  /**
-   * Generate beautiful HTML for the shared item with embedded images
-   */
-  private generateHtml(item: DashItem, embeddedImages: string[] = []): string {
-    const isEvent = item.itemType === 'event';
-    const accentColor = isEvent ? '#5856D6' : '#007AFF'; // Purple for events, blue for tasks
-    const emoji = isEvent ? '📅' : '☑️';
-    const typeLabel = isEvent ? 'Event' : 'Task';
-
-    let dateSection = '';
-    if (isEvent && item.eventDate) {
-      const start = this.formatDateNice(item.eventDate);
-      if (item.endDate) {
-        const end = this.formatDateNice(item.endDate);
-        dateSection = `
-          <div class="meta-item">
-            <span class="meta-icon">🗓</span>
-            <span class="meta-text">${start} → ${end}</span>
-          </div>`;
-      } else {
-        dateSection = `
-          <div class="meta-item">
-            <span class="meta-icon">🗓</span>
-            <span class="meta-text">${start}</span>
-          </div>`;
-      }
-    } else if (!isEvent && item.dueDate) {
-      dateSection = `
-        <div class="meta-item">
-          <span class="meta-icon">📆</span>
-          <span class="meta-text">Due: ${this.formatDateNice(item.dueDate)}</span>
-        </div>`;
-    }
-
-    let locationSection = '';
-    if (item.location) {
-      locationSection = `
-        <div class="meta-item">
-          <span class="meta-icon">📍</span>
-          <span class="meta-text">${this.escapeHtml(item.location)}</span>
-        </div>`;
-    }
-
-    let prioritySection = '';
-    if (!isEvent && item.priority && item.priority !== 'none') {
-      const priorityEmoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
-      prioritySection = `
-        <div class="meta-item">
-          <span class="meta-icon">${priorityEmoji}</span>
-          <span class="meta-text">${this.capitalizeFirst(item.priority)} Priority</span>
-        </div>`;
-    }
-
-    let notesSection = '';
-    if (item.notes) {
-      notesSection = `
-        <div class="section">
-          <div class="section-title">Notes</div>
-          <div class="notes-content">${this.escapeHtml(item.notes).replace(/\n/g, '<br>')}</div>
-        </div>`;
-    }
-
-    let linksSection = '';
-    if (item.links.length > 0) {
-      const linkItems = item.links
-        .map((link: string) => `<a href="${this.escapeHtml(link)}" class="link-item">${this.escapeHtml(this.formatLinkDisplay(link))}</a>`)
-        .join('');
-      linksSection = `
-        <div class="section">
-          <div class="section-title">Links</div>
-          <div class="links-list">${linkItems}</div>
-        </div>`;
-    }
-
-    let tagsSection = '';
-    if (item.tags.length > 0) {
-      const tagItems = item.tags
-        .map((tag: string) => `<span class="tag">#${this.escapeHtml(tag)}</span>`)
-        .join('');
-      tagsSection = `
-        <div class="tags-container">${tagItems}</div>`;
-    }
-
-    let photosSection = '';
-    if (embeddedImages.length > 0) {
-      const photoItems = embeddedImages
-        .map((src) => `<img src="${src}" class="photo" alt="Photo">`)
-        .join('');
-      photosSection = `
-        <div class="section">
-          <div class="section-title">Photos</div>
-          <div class="photos-grid">${photoItems}</div>
-        </div>`;
-    }
-
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${this.escapeHtml(item.title)}</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      background: #f5f5f7;
-      color: #1d1d1f;
-      line-height: 1.5;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 500px;
-      margin: 0 auto;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-    .header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .emoji {
-      font-size: 28px;
-      line-height: 1;
-    }
-    .title-container {
-      flex: 1;
-    }
-    .type-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: ${accentColor};
-      background: ${accentColor}15;
-      padding: 3px 8px;
-      border-radius: 4px;
-      margin-bottom: 6px;
-    }
-    .title {
-      font-size: 22px;
-      font-weight: 600;
-      color: #1d1d1f;
-      line-height: 1.3;
-    }
-    .meta {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 20px;
-      padding: 12px;
-      background: #f5f5f7;
-      border-radius: 10px;
-    }
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .meta-icon {
-      font-size: 16px;
-      width: 24px;
-      text-align: center;
-    }
-    .meta-text {
-      font-size: 15px;
-      color: #424245;
-    }
-    .section {
-      margin-bottom: 16px;
-    }
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #86868b;
-      margin-bottom: 8px;
-    }
-    .notes-content {
-      font-size: 15px;
-      color: #424245;
-      white-space: pre-wrap;
-    }
-    .links-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .link-item {
-      color: ${accentColor};
-      text-decoration: none;
-      font-size: 15px;
-      word-break: break-all;
-    }
-    .link-item:hover {
-      text-decoration: underline;
-    }
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 16px;
-    }
-    .tag {
-      font-size: 13px;
-      color: ${accentColor};
-      background: ${accentColor}12;
-      padding: 4px 10px;
-      border-radius: 12px;
-    }
-    .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 8px;
-    }
-    .photo {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      display: block;
-    }
-    .footer {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e5e7;
-      text-align: center;
-    }
-    .footer-text {
-      font-size: 12px;
-      color: #86868b;
-    }
-    .dash-logo {
-      font-weight: 600;
-      color: #1d1d1f;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <span class="emoji">${emoji}</span>
-      <div class="title-container">
-        <div class="type-badge">${typeLabel}</div>
-        <h1 class="title">${this.escapeHtml(item.title)}</h1>
-      </div>
-    </div>
-    
-    ${(dateSection || locationSection || prioritySection) ? `
-    <div class="meta">
-      ${dateSection}
-      ${locationSection}
-      ${prioritySection}
-    </div>` : ''}
-    
-    ${notesSection}
-    ${linksSection}
-    ${photosSection}
-    ${tagsSection}
-    
-    <div class="footer">
-      <span class="footer-text">Shared from <span class="dash-logo">Dash</span></span>
-    </div>
-  </div>
-</body>
-</html>`;
-  }
-
-  /**
-   * Format item as clean plain text (fallback for apps that don't support HTML)
+   * Format item as clean plain text
    */
   private formatItemAsPlainText(item: DashItem): string {
     const lines: string[] = [];
@@ -425,6 +91,11 @@ class ShareItemService {
       lines.push(`${emoji} ${this.capitalizeFirst(item.priority)} Priority`);
     }
 
+    // Recurrence
+    if (item.isRecurring && item.recurrenceRule) {
+      lines.push(`🔁 Repeats ${item.recurrenceRule}`);
+    }
+
     // Notes
     if (item.notes) {
       lines.push('');
@@ -439,40 +110,402 @@ class ShareItemService {
       });
     }
 
+    // Comments
+    if (item.comments && item.comments.length > 0) {
+      lines.push('');
+      lines.push('— Comments —');
+      const sortedComments = [...item.comments].sort(
+        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+      );
+      for (const comment of sortedComments) {
+        const date = this.formatDateShort(comment.createdDate);
+        lines.push(`${date}: ${comment.text}`);
+      }
+    }
+
     // Tags
     if (item.tags.length > 0) {
       lines.push('');
       lines.push(item.tags.map((t: string) => `#${t}`).join(' '));
     }
 
-    // Footer
+    // Footer with timestamps
     lines.push('');
-    lines.push('— Shared from Dash');
+    lines.push('—');
+    lines.push(`Created: ${this.formatDateShort(item.createdDate)}`);
+    if (item.updatedDate) {
+      lines.push(`Updated: ${this.formatDateShort(item.updatedDate)}`);
+    }
+    lines.push('Shared from Dash');
 
     return lines.join('\n');
   }
 
   /**
-   * Clean up temporary share files
+   * Generate HTML for PDF export with embedded images
    */
-  private async cleanupTempFiles(): Promise<void> {
-    try {
-      const files = await Filesystem.readdir({
-        path: 'tmp',
-        directory: Directory.Cache,
-      });
+  private async generatePdfHtml(item: DashItem): Promise<string> {
+    const isEvent = item.itemType === 'event';
+    const accentColor = isEvent ? '#5856D6' : '#007AFF';
+    const emoji = isEvent ? '📅' : '☑️';
+    const typeLabel = isEvent ? 'Event' : 'Task';
 
-      for (const file of files.files) {
-        if (file.name.startsWith('dash-share-')) {
-          await Filesystem.deleteFile({
-            path: `tmp/${file.name}`,
-            directory: Directory.Cache,
-          });
+    // Load images as base64
+    const embeddedImages: string[] = [];
+    for (const photoPath of item.photoPaths) {
+      try {
+        const base64 = await this.getPhotoAsBase64(photoPath);
+        if (base64) {
+          embeddedImages.push(base64);
+        }
+      } catch (error) {
+        console.error('Failed to load photo for PDF:', error);
+      }
+    }
+
+    // Load comment images
+    const commentImages: Record<string, string> = {};
+    if (item.comments) {
+      for (const comment of item.comments) {
+        if (comment.imagePath) {
+          try {
+            const base64 = await this.getPhotoAsBase64(comment.imagePath);
+            if (base64) {
+              commentImages[comment.id] = base64;
+            }
+          } catch (error) {
+            console.error('Failed to load comment image for PDF:', error);
+          }
         }
       }
-    } catch {
-      // tmp directory might not exist, that's fine
     }
+
+    // Build sections
+    let dateSection = '';
+    if (isEvent && item.eventDate) {
+      const start = this.formatDateNice(item.eventDate);
+      if (item.endDate) {
+        dateSection = `<div class="meta-item"><span class="meta-icon">🗓</span><span>${start} → ${this.formatDateNice(item.endDate)}</span></div>`;
+      } else {
+        dateSection = `<div class="meta-item"><span class="meta-icon">🗓</span><span>${start}</span></div>`;
+      }
+    } else if (!isEvent && item.dueDate) {
+      dateSection = `<div class="meta-item"><span class="meta-icon">📆</span><span>Due: ${this.formatDateNice(item.dueDate)}</span></div>`;
+    }
+
+    let locationSection = '';
+    if (item.location) {
+      locationSection = `<div class="meta-item"><span class="meta-icon">📍</span><span>${this.escapeHtml(item.location)}</span></div>`;
+    }
+
+    let prioritySection = '';
+    if (!isEvent && item.priority && item.priority !== 'none') {
+      const priorityEmoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
+      prioritySection = `<div class="meta-item"><span class="meta-icon">${priorityEmoji}</span><span>${this.capitalizeFirst(item.priority)} Priority</span></div>`;
+    }
+
+    let recurrenceSection = '';
+    if (item.isRecurring && item.recurrenceRule) {
+      recurrenceSection = `<div class="meta-item"><span class="meta-icon">🔁</span><span>Repeats ${item.recurrenceRule}</span></div>`;
+    }
+
+    let statusSection = '';
+    if (!isEvent) {
+      statusSection = `<div class="meta-item"><span class="meta-icon">${item.isCompleted ? '✅' : '⬜'}</span><span>${item.isCompleted ? 'Completed' : 'Not completed'}</span></div>`;
+    }
+
+    let notesSection = '';
+    if (item.notes) {
+      notesSection = `
+        <div class="section">
+          <div class="section-title">Notes</div>
+          <div class="notes-content">${this.escapeHtml(item.notes).replace(/\n/g, '<br>')}</div>
+        </div>`;
+    }
+
+    let linksSection = '';
+    if (item.links.length > 0) {
+      const linkItems = item.links
+        .map((link: string) => `<div class="link-item">🔗 ${this.escapeHtml(link)}</div>`)
+        .join('');
+      linksSection = `
+        <div class="section">
+          <div class="section-title">Links</div>
+          ${linkItems}
+        </div>`;
+    }
+
+    let photosSection = '';
+    if (embeddedImages.length > 0) {
+      const photoItems = embeddedImages
+        .map((src) => `<img src="${src}" class="photo">`)
+        .join('');
+      photosSection = `
+        <div class="section">
+          <div class="section-title">Photos</div>
+          <div class="photos-grid">${photoItems}</div>
+        </div>`;
+    }
+
+    let commentsSection = '';
+    if (item.comments && item.comments.length > 0) {
+      const sortedComments = [...item.comments].sort(
+        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+      );
+      const commentItems = sortedComments
+        .map((comment) => {
+          const date = this.formatDateShort(comment.createdDate);
+          const edited = comment.updatedDate ? ' <span class="edited">(edited)</span>' : '';
+          const image = commentImages[comment.id]
+            ? `<img src="${commentImages[comment.id]}" class="comment-image">`
+            : '';
+          return `
+            <div class="comment">
+              <div class="comment-date">${date}${edited}</div>
+              <div class="comment-text">${this.escapeHtml(comment.text)}</div>
+              ${image}
+            </div>`;
+        })
+        .join('');
+      commentsSection = `
+        <div class="section">
+          <div class="section-title">Comments</div>
+          ${commentItems}
+        </div>`;
+    }
+
+    let tagsSection = '';
+    if (item.tags.length > 0) {
+      const tagItems = item.tags
+        .map((tag: string) => `<span class="tag">#${this.escapeHtml(tag)}</span>`)
+        .join('');
+      tagsSection = `<div class="tags-container">${tagItems}</div>`;
+    }
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${this.escapeHtml(item.title)}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      color: #1d1d1f;
+      line-height: 1.5;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid ${accentColor};
+    }
+    .emoji { font-size: 36px; }
+    .title-container { flex: 1; }
+    .type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: white;
+      background: ${accentColor};
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1d1d1f;
+      line-height: 1.2;
+    }
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f5f5f7;
+      border-radius: 12px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+    }
+    .meta-icon { font-size: 18px; width: 28px; text-align: center; }
+    .section { margin-bottom: 24px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #86868b;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e5e5e7;
+    }
+    .notes-content {
+      font-size: 15px;
+      color: #424245;
+      white-space: pre-wrap;
+    }
+    .link-item {
+      font-size: 14px;
+      color: ${accentColor};
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+    .photos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .photo {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .comment {
+      padding: 12px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .comment-date {
+      font-size: 12px;
+      color: #86868b;
+      margin-bottom: 4px;
+    }
+    .edited { font-style: italic; }
+    .comment-text { font-size: 14px; }
+    .comment-image {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .tag {
+      font-size: 13px;
+      color: ${accentColor};
+      background: ${accentColor}15;
+      padding: 4px 12px;
+      border-radius: 14px;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e5e7;
+      text-align: center;
+      color: #86868b;
+      font-size: 12px;
+    }
+    .timestamps {
+      margin-bottom: 12px;
+    }
+    .dash-logo {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1d1d1f;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="emoji">${emoji}</span>
+    <div class="title-container">
+      <div class="type-badge">${typeLabel}</div>
+      <h1 class="title">${this.escapeHtml(item.title)}</h1>
+    </div>
+  </div>
+  
+  ${(dateSection || locationSection || prioritySection || recurrenceSection || statusSection) ? `
+  <div class="meta">
+    ${statusSection}
+    ${dateSection}
+    ${locationSection}
+    ${prioritySection}
+    ${recurrenceSection}
+  </div>` : ''}
+  
+  ${notesSection}
+  ${linksSection}
+  ${photosSection}
+  ${commentsSection}
+  ${tagsSection}
+  
+  <div class="footer">
+    <div class="timestamps">
+      Created: ${this.formatDateShort(item.createdDate)}
+      ${item.updatedDate ? ` · Updated: ${this.formatDateShort(item.updatedDate)}` : ''}
+    </div>
+    <div class="dash-logo">Dash</div>
+  </div>
+</body>
+</html>`;
+  }
+
+  /**
+   * Get file:// URIs for photos to include in share
+   */
+  private async getShareableFiles(item: DashItem): Promise<string[]> {
+    const files: string[] = [];
+
+    for (const photoPath of item.photoPaths) {
+      try {
+        const uri = await photoService.getPhotoFileUri(photoPath);
+        files.push(uri);
+      } catch (error) {
+        console.error('Failed to get photo URI for sharing:', error);
+      }
+    }
+
+    return files;
+  }
+
+  /**
+   * Get a photo as base64 data URI
+   */
+  private async getPhotoAsBase64(photoPath: string): Promise<string | null> {
+    try {
+      const result = await Filesystem.readFile({
+        path: photoPath,
+        directory: Directory.Documents,
+      });
+
+      if (typeof result.data === 'string') {
+        return `data:image/jpeg;base64,${result.data}`;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to read photo as base64:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Sanitize a string for use as a filename
+   */
+  private sanitizeFileName(name: string): string {
+    return name
+      .replace(/[^a-zA-Z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50) || 'dash-item';
   }
 
   /**
@@ -482,7 +515,7 @@ class ShareItemService {
     const date = new Date(dateString);
     const now = new Date();
     const isThisYear = date.getFullYear() === now.getFullYear();
-    
+
     return date.toLocaleString(undefined, {
       weekday: 'short',
       month: 'short',
@@ -494,16 +527,15 @@ class ShareItemService {
   }
 
   /**
-   * Format a URL for display (show domain + path start)
+   * Format date in short form
    */
-  private formatLinkDisplay(url: string): string {
-    try {
-      const parsed = new URL(url);
-      const display = parsed.hostname + parsed.pathname;
-      return display.length > 40 ? display.substring(0, 37) + '...' : display;
-    } catch {
-      return url.length > 40 ? url.substring(0, 37) + '...' : url;
-    }
+  private formatDateShort(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   }
 
   private escapeHtml(str: string): string {

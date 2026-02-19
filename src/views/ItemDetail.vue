@@ -16,7 +16,7 @@
         <ion-buttons slot="end">
           <!-- View mode: show Share and Edit buttons -->
           <template v-if="isViewMode && isExistingItem">
-            <ion-button @click="shareItem">
+            <ion-button @click="showShareOptions">
               <ion-icon slot="icon-only" :icon="shareOutline" />
             </ion-button>
             <ion-button @click="enterEditMode">
@@ -797,13 +797,49 @@ async function addToGoogleCalendar() {
   }
 }
 
-async function shareItem() {
+async function showShareOptions() {
   await Haptics.impact({ style: ImpactStyle.Light });
+  
+  const actionSheet = await actionSheetController.create({
+    header: 'Share',
+    buttons: [
+      {
+        text: 'Share as Text',
+        icon: 'document-text-outline',
+        handler: () => {
+          shareAsText();
+        },
+      },
+      {
+        text: 'Export as PDF',
+        icon: 'document-outline',
+        handler: () => {
+          exportAsPdf();
+        },
+      },
+      {
+        text: 'Cancel',
+        role: 'cancel',
+      },
+    ],
+  });
+  
+  await actionSheet.present();
+}
+
+async function shareAsText() {
   try {
-    await shareItemService.shareItem(item as DashItem);
+    await shareItemService.shareAsText(item as DashItem);
   } catch (error) {
-    // User cancelled share or error occurred
     console.log('Share cancelled or error:', error);
+  }
+}
+
+async function exportAsPdf() {
+  try {
+    await shareItemService.exportAsPdf(item as DashItem);
+  } catch (error) {
+    console.log('PDF export cancelled or error:', error);
   }
 }
 
