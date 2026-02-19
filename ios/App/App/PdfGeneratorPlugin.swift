@@ -11,7 +11,7 @@ public class PdfGeneratorPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "generatePdf", returnType: CAPPluginReturnPromise)
     ]
     
-    private var webView: WKWebView?
+    private var pdfWebView: WKWebView?
     private var currentCall: CAPPluginCall?
     private var currentFileName: String = "document"
     
@@ -34,21 +34,21 @@ public class PdfGeneratorPlugin: CAPPlugin, CAPBridgedPlugin {
     private func renderHtmlToPdf(html: String) {
         // Create a WKWebView to render the HTML
         let configuration = WKWebViewConfiguration()
-        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 612, height: 792), configuration: configuration)
-        webView.navigationDelegate = self
-        self.webView = webView
+        let newWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: 612, height: 792), configuration: configuration)
+        newWebView.navigationDelegate = self
+        self.pdfWebView = newWebView
         
         // Load the HTML content
-        webView.loadHTMLString(html, baseURL: nil)
+        newWebView.loadHTMLString(html, baseURL: nil)
     }
     
     private func createPdfFromWebView() {
-        guard let webView = self.webView, let call = self.currentCall else {
+        guard let webViewForPdf = self.pdfWebView, let call = self.currentCall else {
             return
         }
         
         // Configure print formatter
-        let printFormatter = webView.viewPrintFormatter()
+        let printFormatter = webViewForPdf.viewPrintFormatter()
         
         // Create print page renderer
         let renderer = UIPrintPageRenderer()
@@ -90,7 +90,7 @@ public class PdfGeneratorPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         
         // Cleanup
-        self.webView = nil
+        self.pdfWebView = nil
         self.currentCall = nil
     }
 }
@@ -107,13 +107,13 @@ extension PdfGeneratorPlugin: WKNavigationDelegate {
     
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         currentCall?.reject("Failed to load HTML: \(error.localizedDescription)")
-        self.webView = nil
+        self.pdfWebView = nil
         self.currentCall = nil
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         currentCall?.reject("Failed to load HTML: \(error.localizedDescription)")
-        self.webView = nil
+        self.pdfWebView = nil
         self.currentCall = nil
     }
 }

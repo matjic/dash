@@ -805,14 +805,12 @@ async function showShareOptions() {
     buttons: [
       {
         text: 'Share as Text',
-        icon: 'document-text-outline',
         handler: () => {
           shareAsText();
         },
       },
       {
         text: 'Export as PDF',
-        icon: 'document-outline',
         handler: () => {
           exportAsPdf();
         },

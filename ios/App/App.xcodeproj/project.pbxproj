@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2AA5596A2F46B53700C970E4 /* DashBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA5596B2F46B53700C970E4 /* DashBridgeViewController.swift */; };
+		2AA559692F46B53600C970E4 /* PdfGeneratorPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA559682F46B53600C970E4 /* PdfGeneratorPlugin.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -22,6 +24,8 @@
 
 /* Begin PBXFileReference section */
 		2A1DC8B3EA8E7590ACCC3069 /* Pods-Dash.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Dash.debug.xcconfig"; path = "Target Support Files/Pods-Dash/Pods-Dash.debug.xcconfig"; sourceTree = "<group>"; };
+		2AA559682F46B53600C970E4 /* PdfGeneratorPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfGeneratorPlugin.swift; sourceTree = "<group>"; };
+		2AA5596B2F46B53700C970E4 /* DashBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashBridgeViewController.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		4604F3C16D6254BD14DA3E69 /* Pods_Dash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Dash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
@@ -73,6 +77,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				2AA559682F46B53600C970E4 /* PdfGeneratorPlugin.swift */,
+				2AA5596B2F46B53700C970E4 /* DashBridgeViewController.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				SIRI0002000000000000001 /* DashIntents.swift */,
@@ -262,6 +268,8 @@
 				SIRI0001000000000000001 /* DashIntents.swift in Sources */,
 				SIRI0001000000000000002 /* DashShortcuts.swift in Sources */,
 				SIRI0001000000000000003 /* DashDatabase.swift in Sources */,
+				2AA559692F46B53600C970E4 /* PdfGeneratorPlugin.swift in Sources */,
+				2AA5596A2F46B53700C970E4 /* DashBridgeViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
