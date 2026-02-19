@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "ios": "bun run build && bunx cap sync ios && bunx cap open ios",
     "ios:sync": "bun run build && bunx cap sync ios",
-    "ios:run": "bun run build && bunx cap sync ios && bunx cap run ios",
+    "ios:run": "bun run build && bunx cap sync ios && bunx cap run ios --scheme Dash",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
