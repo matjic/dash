@@ -15,7 +15,7 @@ function getScheduledNotification(): {
   id: number;
   title: string;
   body: string;
-  extra: { itemId: string; itemType: string };
+  extra: { itemId: string };
 } | undefined {
   const calls = mockLocalNotifications.schedule.mock.calls as unknown[][];
   if (calls.length === 0) return undefined;
@@ -47,7 +47,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -76,7 +75,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -114,7 +112,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         dueDate: dueDate.toISOString(),
         priority: 'none',
@@ -130,32 +127,6 @@ describe('notificationService', () => {
       expect(body).toContain('Due');
     });
 
-    it('should format event notification with event date', async () => {
-      const eventDate = new Date(Date.now() + 86400000); // Tomorrow
-      const item: DashItem = {
-        id: 'test-event-123',
-        title: 'Test Event',
-        notes: '',
-        createdDate: new Date().toISOString(),
-        links: [],
-        photoPaths: [],
-        comments: [],
-        itemType: 'event',
-        isCompleted: false,
-        eventDate: eventDate.toISOString(),
-        priority: 'none',
-        tags: [],
-        isRecurring: false,
-        hasReminder: true,
-        reminderDate: new Date(Date.now() + 3600000).toISOString(),
-      };
-
-      await notificationService.scheduleReminder(item);
-
-      const body = getScheduledNotification()?.body;
-      expect(body).toContain('Event starts');
-    });
-
     it('should use fallback message when no date is set', async () => {
       const item: DashItem = {
         id: 'test-id-no-date',
@@ -165,7 +136,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -191,7 +161,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -205,32 +174,6 @@ describe('notificationService', () => {
       const extra = getScheduledNotification()?.extra;
       expect(extra).toBeDefined();
       expect(extra?.itemId).toBe('test-item-id-extra');
-      expect(extra?.itemType).toBe('task');
-    });
-
-    it('should include itemType for events', async () => {
-      const item: DashItem = {
-        id: 'test-event-id-extra',
-        title: 'Test Event',
-        notes: '',
-        createdDate: new Date().toISOString(),
-        links: [],
-        photoPaths: [],
-        comments: [],
-        itemType: 'event',
-        isCompleted: false,
-        eventDate: new Date(Date.now() + 86400000).toISOString(),
-        priority: 'none',
-        tags: [],
-        isRecurring: false,
-        hasReminder: true,
-        reminderDate: new Date(Date.now() + 3600000).toISOString(),
-      };
-
-      await notificationService.scheduleReminder(item);
-
-      const extra = getScheduledNotification()?.extra;
-      expect(extra?.itemType).toBe('event');
     });
   });
 
@@ -244,7 +187,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -267,7 +209,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -290,7 +231,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -325,7 +265,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],
@@ -349,7 +288,6 @@ describe('notificationService', () => {
         links: [],
         photoPaths: [],
         comments: [],
-        itemType: 'task',
         isCompleted: false,
         priority: 'none',
         tags: [],

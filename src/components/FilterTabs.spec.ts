@@ -46,7 +46,6 @@ describe('FilterTabs', () => {
 
     expect(wrapper.text()).toContain('All');
     expect(wrapper.text()).toContain('Tasks');
-    expect(wrapper.text()).toContain('Events');
   });
 
   it('should emit update:modelValue when filter changes', async () => {

@@ -62,21 +62,13 @@ class ShareItemService {
    */
   private formatItemAsPlainText(item: DashItem): string {
     const lines: string[] = [];
-    const isEvent = item.itemType === 'event';
 
     // Title with type indicator
-    lines.push(`${isEvent ? '📅' : '☑️'} ${item.title}`);
+    lines.push(`☑️ ${item.title}`);
     lines.push('');
 
-    // Date
-    if (isEvent && item.eventDate) {
-      const start = this.formatDateNice(item.eventDate);
-      if (item.endDate) {
-        lines.push(`🗓 ${start} → ${this.formatDateNice(item.endDate)}`);
-      } else {
-        lines.push(`🗓 ${start}`);
-      }
-    } else if (!isEvent && item.dueDate) {
+    // Due Date
+    if (item.dueDate) {
       lines.push(`📆 Due: ${this.formatDateNice(item.dueDate)}`);
     }
 
@@ -86,7 +78,7 @@ class ShareItemService {
     }
 
     // Priority
-    if (!isEvent && item.priority && item.priority !== 'none') {
+    if (item.priority && item.priority !== 'none') {
       const emoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
       lines.push(`${emoji} ${this.capitalizeFirst(item.priority)} Priority`);
     }
@@ -145,10 +137,9 @@ class ShareItemService {
    * Generate HTML for PDF export with embedded images
    */
   private async generatePdfHtml(item: DashItem): Promise<string> {
-    const isEvent = item.itemType === 'event';
-    const accentColor = isEvent ? '#5856D6' : '#007AFF';
-    const emoji = isEvent ? '📅' : '☑️';
-    const typeLabel = isEvent ? 'Event' : 'Task';
+    const accentColor = '#007AFF';
+    const emoji = '☑️';
+    const typeLabel = 'Task';
 
     // Load images as base64
     const embeddedImages: string[] = [];
@@ -182,14 +173,7 @@ class ShareItemService {
 
     // Build sections
     let dateSection = '';
-    if (isEvent && item.eventDate) {
-      const start = this.formatDateNice(item.eventDate);
-      if (item.endDate) {
-        dateSection = `<div class="meta-item"><span class="meta-icon">🗓</span><span>${start} → ${this.formatDateNice(item.endDate)}</span></div>`;
-      } else {
-        dateSection = `<div class="meta-item"><span class="meta-icon">🗓</span><span>${start}</span></div>`;
-      }
-    } else if (!isEvent && item.dueDate) {
+    if (item.dueDate) {
       dateSection = `<div class="meta-item"><span class="meta-icon">📆</span><span>Due: ${this.formatDateNice(item.dueDate)}</span></div>`;
     }
 
@@ -199,7 +183,7 @@ class ShareItemService {
     }
 
     let prioritySection = '';
-    if (!isEvent && item.priority && item.priority !== 'none') {
+    if (item.priority && item.priority !== 'none') {
       const priorityEmoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
       prioritySection = `<div class="meta-item"><span class="meta-icon">${priorityEmoji}</span><span>${this.capitalizeFirst(item.priority)} Priority</span></div>`;
     }
@@ -209,10 +193,7 @@ class ShareItemService {
       recurrenceSection = `<div class="meta-item"><span class="meta-icon">🔁</span><span>Repeats ${item.recurrenceRule}</span></div>`;
     }
 
-    let statusSection = '';
-    if (!isEvent) {
-      statusSection = `<div class="meta-item"><span class="meta-icon">${item.isCompleted ? '✅' : '⬜'}</span><span>${item.isCompleted ? 'Completed' : 'Not completed'}</span></div>`;
-    }
+    const statusSection = `<div class="meta-item"><span class="meta-icon">${item.isCompleted ? '✅' : '⬜'}</span><span>${item.isCompleted ? 'Completed' : 'Not completed'}</span></div>`;
 
     let notesSection = '';
     if (item.notes) {

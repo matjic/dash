@@ -2,7 +2,7 @@
   "name": "dash",
   "private": true,
   "version": "1.0.0",
-  "description": "A unified task and event tracking application with quick-capture capabilities",
+  "description": "A task management application with quick-capture capabilities",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -33,10 +33,7 @@ function addHours(dateString: string, hours: number): string {
  * Check if an item has a date that can be used for Google Calendar
  */
 export function canGenerateCalendarLink(item: DashItem): boolean {
-  if (item.itemType === 'task') {
-    return !!item.dueDate;
-  }
-  return !!item.eventDate;
+  return !!item.dueDate;
 }
 
 /**
@@ -53,20 +50,10 @@ export function canGenerateCalendarLink(item: DashItem): boolean {
  * Reference: https://github.com/InteractionDesignFoundation/add-event-to-calendar-docs/blob/main/services/google.md
  */
 export function generateGoogleCalendarLink(item: DashItem): string | null {
-  // Determine start and end dates based on item type
-  let startDate: string | undefined;
-  let endDate: string | undefined;
-
-  if (item.itemType === 'task') {
-    if (!item.dueDate) return null;
-    startDate = item.dueDate;
-    endDate = addHours(item.dueDate, 1); // Default 1 hour duration
-  } else {
-    // Event
-    if (!item.eventDate) return null;
-    startDate = item.eventDate;
-    endDate = item.endDate || addHours(item.eventDate, 1); // Use endDate or default 1 hour
-  }
+  if (!item.dueDate) return null;
+  
+  const startDate = item.dueDate;
+  const endDate = addHours(item.dueDate, 1); // Default 1 hour duration
 
   // Format dates for Google Calendar (local time, user's timezone)
   const formattedStart = formatDateForGoogleCalendar(startDate);

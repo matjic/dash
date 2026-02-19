@@ -44,8 +44,6 @@
           @click="goToItem"
           @toggle-complete="onToggleComplete"
           @delete="onDelete"
-          @convert-to-event="onConvertToEvent"
-          @convert-to-task="onConvertToTask"
         />
       </ion-list>
       
@@ -88,32 +86,30 @@ import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import FilterTabs from '../components/FilterTabs.vue';
 import ItemRow from '../components/ItemRow.vue';
 import QuickAddBar from '../components/QuickAddBar.vue';
-import { useItems, type FilterType } from '../composables/useItems';
+import { useItems } from '../composables/useItems';
+import type { FilterType } from '../components/FilterTabs.vue';
 import type { DashItem } from '../models/DashItem';
 
 const router = useRouter();
 const {
   filteredItems,
   isLoading,
-  selectedFilter,
   showCompleted,
-  setFilter,
   toggleComplete,
   toggleShowCompleted,
   deleteItem,
-  convertToEvent,
-  convertToTask,
 } = useItems();
 
 const quickAddRef = ref<InstanceType<typeof QuickAddBar> | null>(null);
-const localFilter = ref<FilterType>(selectedFilter.value);
+const localFilter = ref<FilterType>('all');
 const isFilterHidden = ref(false);
 let lastScrollTop = 0;
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Sync local state with global state
-watch(localFilter, (value) => {
-  setFilter(value);
+// Filter state is local only (no events to filter anymore)
+watch(localFilter, () => {
+  // Filter tabs kept for visual consistency but no filtering action needed
+  // since everything is a task now
 });
 
 // Dismiss keyboard when tapping outside the input area
@@ -188,16 +184,6 @@ async function onDelete(id: string) {
   });
 
   await alert.present();
-}
-
-async function onConvertToEvent(id: string) {
-  await Haptics.impact({ style: ImpactStyle.Light });
-  await convertToEvent(id);
-}
-
-async function onConvertToTask(id: string) {
-  await Haptics.impact({ style: ImpactStyle.Light });
-  await convertToTask(id);
 }
 
 async function onToggleShowCompleted() {

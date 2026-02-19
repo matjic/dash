@@ -29,7 +29,6 @@ export const DASH_ITEMS_COLUMNS = {
   photo_paths: { type: 'TEXT', nullable: true, jsonArray: true },
   comments: { type: 'TEXT', nullable: true, jsonArray: true },
   attachments: { type: 'TEXT', nullable: true, jsonArray: true },
-  item_type: { type: 'TEXT', nullable: false, values: ['task', 'event'] },
   is_completed: { type: 'INTEGER', nullable: false, default: 0 },
   due_date: { type: 'TEXT', nullable: true },
   priority: { type: 'TEXT', nullable: false, default: 'none', values: ['none', 'low', 'medium', 'high'] },
@@ -38,8 +37,6 @@ export const DASH_ITEMS_COLUMNS = {
   recurrence_rule: { type: 'TEXT', nullable: true, values: ['daily', 'weekly', 'monthly'] },
   has_reminder: { type: 'INTEGER', nullable: false, default: 0 },
   reminder_date: { type: 'TEXT', nullable: true },
-  event_date: { type: 'TEXT', nullable: true },
-  end_date: { type: 'TEXT', nullable: true },
 } as const;
 
 export type ColumnName = keyof typeof DASH_ITEMS_COLUMNS;
@@ -57,7 +54,6 @@ export const COLUMN_ORDER: ColumnName[] = [
   'photo_paths',
   'comments',
   'attachments',
-  'item_type',
   'is_completed',
   'due_date',
   'priority',
@@ -66,8 +62,6 @@ export const COLUMN_ORDER: ColumnName[] = [
   'recurrence_rule',
   'has_reminder',
   'reminder_date',
-  'event_date',
-  'end_date',
 ];
 
 /**
@@ -80,7 +74,6 @@ export const SIRI_TASK_DEFAULTS = {
   photo_paths: '[]',
   comments: '[]',
   attachments: '[]',
-  item_type: 'task',
   is_completed: 0,
   due_date: null,
   priority: 'none',
@@ -89,29 +82,4 @@ export const SIRI_TASK_DEFAULTS = {
   recurrence_rule: null,
   has_reminder: 0,
   reminder_date: null,
-  event_date: null,
-  end_date: null,
-} as const;
-
-/**
- * Default values for a new event created via Siri
- */
-export const SIRI_EVENT_DEFAULTS = {
-  notes: null,
-  location: null,
-  links: '[]',
-  photo_paths: '[]',
-  comments: '[]',
-  attachments: '[]',
-  item_type: 'event',
-  is_completed: 0,
-  due_date: null,
-  priority: 'none',
-  tags: '[]',
-  is_recurring: 0,
-  recurrence_rule: null,
-  has_reminder: 0,
-  reminder_date: null,
-  event_date: null,
-  end_date: null,
 } as const;
