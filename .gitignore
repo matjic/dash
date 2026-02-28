@@ -31,3 +31,7 @@ ios/App/App/public
 
 # Capacitor
 ios/App/App/capacitor.config.json
+
+# Claude Code / OMC
+.claude/
+.omc/

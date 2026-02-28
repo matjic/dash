@@ -1,3 +1,5 @@
+<!-- Generated: 2026-02-28 | Updated: 2026-02-28 -->
+
 # AGENTS.md
 
 This document provides guidance for AI agents working on the Dash codebase.
