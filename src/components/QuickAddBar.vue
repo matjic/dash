@@ -95,7 +95,7 @@ async function onAdd() {
     await Haptics.impact({ style: ImpactStyle.Light });
 
     await createItem({
-      title: parsed.title,
+      title: parsed.title || inputText.value.trim(),
       priority: parsed.priority,
       isRecurring: parsed.isRecurring,
       recurrenceRule: parsed.recurrenceRule,
