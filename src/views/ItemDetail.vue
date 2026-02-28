@@ -1125,8 +1125,6 @@ async function saveItemQuietly() {
 async function onSave() {
   if (!canSave.value) return;
 
-  await Haptics.impact({ style: ImpactStyle.Light });
-
   try {
     if (isExistingItem.value && originalItemId.value) {
       // Ensure we're updating with the original ID
@@ -1138,6 +1136,9 @@ async function onSave() {
       await createItem(item as Omit<DashItem, 'id' | 'createdDate'>);
       ionRouter.back();
     }
+
+    // Haptic feedback is best-effort; never block save
+    Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
   } catch (error) {
     console.error('Error saving item:', error);
 

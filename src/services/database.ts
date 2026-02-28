@@ -118,20 +118,57 @@ class DatabaseService {
       const result = await this.db.query(`PRAGMA table_info(${TABLE_NAME})`);
       const columns = result.values || [];
       const hasItemType = columns.some((col: any) => col.name === 'item_type');
-      
+
       if (hasItemType) {
         // Convert events to tasks: set due_date from event_date where applicable
         await this.db.execute(`
-          UPDATE ${TABLE_NAME} 
+          UPDATE ${TABLE_NAME}
           SET due_date = COALESCE(due_date, event_date, created_date)
           WHERE item_type = 'event'
         `);
-        
+
         console.log('Migration: Converted events to tasks');
-        
-        // Note: SQLite doesn't support DROP COLUMN in older versions
-        // The columns will remain but be ignored. For a full migration,
-        // we would need to recreate the table.
+
+        // Recreate table without removed columns (item_type, event_date, end_date)
+        // SQLite older versions don't support DROP COLUMN, so we rebuild the table
+        await this.db.execute(`
+          CREATE TABLE IF NOT EXISTS ${TABLE_NAME}_new (
+            id TEXT PRIMARY KEY NOT NULL,
+            title TEXT NOT NULL,
+            notes TEXT,
+            created_date TEXT NOT NULL,
+            location TEXT,
+            links TEXT,
+            photo_paths TEXT,
+            comments TEXT,
+            attachments TEXT,
+            is_completed INTEGER DEFAULT 0,
+            due_date TEXT,
+            priority TEXT DEFAULT 'none',
+            tags TEXT,
+            is_recurring INTEGER DEFAULT 0,
+            recurrence_rule TEXT,
+            has_reminder INTEGER DEFAULT 0,
+            reminder_date TEXT,
+            updated_date TEXT
+          )
+        `);
+
+        await this.db.execute(`
+          INSERT INTO ${TABLE_NAME}_new
+            (id, title, notes, created_date, location, links, photo_paths, comments,
+             attachments, is_completed, due_date, priority, tags, is_recurring,
+             recurrence_rule, has_reminder, reminder_date, updated_date)
+          SELECT id, title, notes, created_date, location, links, photo_paths, comments,
+                 attachments, is_completed, due_date, priority, tags, is_recurring,
+                 recurrence_rule, has_reminder, reminder_date, updated_date
+          FROM ${TABLE_NAME}
+        `);
+
+        await this.db.execute(`DROP TABLE ${TABLE_NAME}`);
+        await this.db.execute(`ALTER TABLE ${TABLE_NAME}_new RENAME TO ${TABLE_NAME}`);
+
+        console.log('Migration: Removed legacy event columns');
       }
     } catch (error) {
       console.log('Migration check skipped:', error);

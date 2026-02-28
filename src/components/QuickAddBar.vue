@@ -91,9 +91,6 @@ async function onAdd() {
   const parsed = parseQuickInput(inputText.value);
 
   try {
-    // Haptic feedback
-    await Haptics.impact({ style: ImpactStyle.Light });
-
     await createItem({
       title: parsed.title || inputText.value.trim(),
       priority: parsed.priority,
@@ -112,6 +109,9 @@ async function onAdd() {
     // Clear both local and global search
     inputText.value = '';
     setSearchText('');
+
+    // Haptic feedback is best-effort; never block task creation
+    Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
   } catch (error) {
     console.error('Error creating item:', error);
   }
