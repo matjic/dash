@@ -96,9 +96,13 @@ async function copyImageToPhotos(sourcePath: string): Promise<string | null> {
       // Directory might already exist
     }
 
-    // Read from source and write to destination
+    // The sourcePath is absolute; extract filename and read relative to Documents
+    const fileName = sourcePath.split('/').pop() || '';
+    const relativeSrc = `shared-incoming/${fileName}`;
+
     const sourceData = await Filesystem.readFile({
-      path: sourcePath,
+      path: relativeSrc,
+      directory: Directory.Documents,
     });
 
     await Filesystem.writeFile({
@@ -134,9 +138,13 @@ async function copyFileToAttachments(sourcePath: string): Promise<Attachment | n
       // Directory might already exist
     }
 
-    // Read from source and write to destination
+    // The sourcePath is absolute; extract filename and read relative to Documents
+    const srcFileName = sourcePath.split('/').pop() || '';
+    const relativeSrc = `shared-incoming/${srcFileName}`;
+
     const sourceData = await Filesystem.readFile({
-      path: sourcePath,
+      path: relativeSrc,
+      directory: Directory.Documents,
     });
 
     await Filesystem.writeFile({
