@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  getRelevantDate,
-  isOverdue,
-  createEmptyItem,
-  type DashItem,
-} from './DashItem';
+import { getRelevantDate, isOverdue, createEmptyItem, type DashItem } from './DashItem';
 
 describe('DashItem', () => {
   describe('getRelevantDate', () => {

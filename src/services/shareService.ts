@@ -1,4 +1,4 @@
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { v4 as uuidv4 } from 'uuid';
 import type { Attachment } from '../models/DashItem';
@@ -35,21 +35,21 @@ let pendingSharedData: ProcessedSharedData | null = null;
 async function readSharedItems(): Promise<SharedData | null> {
   // Since we can't directly access App Group from JavaScript,
   // we need to use a workaround:
-  // 
+  //
   // Option 1: Use a Capacitor plugin that bridges to native code
   // Option 2: Have the Share Extension copy data to a location accessible to WebView
   // Option 3: Encode small data directly in the deep link URL
   //
   // For now, we'll implement Option 2:
   // The Share Extension copies files to a known location and writes metadata
-  
+
   try {
     // Try to read from Documents/shared-incoming/shared-items.json
     // The native code should copy data here before opening the app
     const result = await Filesystem.readFile({
       path: 'shared-incoming/shared-items.json',
       directory: Directory.Documents,
-      encoding: 'utf8' as any,
+      encoding: Encoding.UTF8,
     });
 
     if (typeof result.data === 'string') {
@@ -241,7 +241,9 @@ function generateSuggestedTitle(data: SharedData): string {
 
   // Use image count
   if (data.imagePaths.length > 0) {
-    return data.imagePaths.length === 1 ? 'Shared Image' : `${data.imagePaths.length} Shared Images`;
+    return data.imagePaths.length === 1
+      ? 'Shared Image'
+      : `${data.imagePaths.length} Shared Images`;
   }
 
   return 'Shared Item';

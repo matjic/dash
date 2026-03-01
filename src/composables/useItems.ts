@@ -65,14 +65,14 @@ export function useItems() {
       await databaseService.initialize();
       await photoService.initialize();
       await loadItems();
-      
+
       // Register callback to refresh UI after seeding demo data
       setOnSeedComplete(loadItems);
-      
+
       // Load showCompleted preference
       const showCompletedPref = await databaseService.getPreference(SHOW_COMPLETED_KEY);
       showCompleted.value = showCompletedPref === 'true';
-      
+
       isInitialized.value = true;
     } catch (error) {
       console.error('Error initializing:', error);
@@ -129,8 +129,10 @@ export function useItems() {
     const item = items.value.find((i) => i.id === id);
     if (!item) return;
 
-    // Cancel reminder
-    await notificationService.cancelReminder(id);
+    // Cancel reminder if one is set
+    if (item.hasReminder) {
+      await notificationService.cancelReminder(id);
+    }
 
     // Delete associated photos
     if (item.photoPaths.length > 0) {

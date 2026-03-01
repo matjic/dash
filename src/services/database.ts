@@ -1,6 +1,35 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import type { DashItem } from '../models/DashItem';
+import type { DashItem, Priority, RecurrenceRule } from '../models/DashItem';
+
+interface RawItemRow {
+  id: string;
+  title: string;
+  notes: string | null;
+  created_date: string;
+  updated_date: string | null;
+  location: string | null;
+  links: string | null;
+  photo_paths: string | null;
+  comments: string | null;
+  attachments: string | null;
+  is_completed: number;
+  due_date: string | null;
+  priority: string | null;
+  tags: string | null;
+  is_recurring: number;
+  recurrence_rule: string | null;
+  has_reminder: number;
+  reminder_date: string | null;
+}
+
+interface PragmaColumnInfo {
+  name: string;
+  type: string;
+  notnull: number;
+  dflt_value: string | null;
+  pk: number;
+}
 
 const DB_NAME = 'dash.db';
 const TABLE_NAME = 'dash_items';
@@ -21,7 +50,7 @@ class DatabaseService {
     try {
       // Check if running on native platform
       const platform = Capacitor.getPlatform();
-      
+
       if (platform === 'web') {
         // For web, we'll use jeep-sqlite web component
         await customElements.whenDefined('jeep-sqlite');
@@ -32,13 +61,7 @@ class DatabaseService {
       }
 
       // Create/open database
-      this.db = await this.sqlite.createConnection(
-        DB_NAME,
-        false,
-        'no-encryption',
-        1,
-        false
-      );
+      this.db = await this.sqlite.createConnection(DB_NAME, false, 'no-encryption', 1, false);
 
       await this.db.open();
       await this.createTable();
@@ -116,8 +139,8 @@ class DatabaseService {
     // Check if item_type column exists (indicates old schema)
     try {
       const result = await this.db.query(`PRAGMA table_info(${TABLE_NAME})`);
-      const columns = result.values || [];
-      const hasItemType = columns.some((col: any) => col.name === 'item_type');
+      const columns: PragmaColumnInfo[] = result.values || [];
+      const hasItemType = columns.some((col) => col.name === 'item_type');
 
       if (hasItemType) {
         // Convert events to tasks: set due_date from event_date where applicable
@@ -219,10 +242,7 @@ class DatabaseService {
   async getItemById(id: string): Promise<DashItem | null> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const result = await this.db.query(
-      `SELECT * FROM ${TABLE_NAME} WHERE id = ?`,
-      [id]
-    );
+    const result = await this.db.query(`SELECT * FROM ${TABLE_NAME} WHERE id = ?`, [id]);
 
     if (!result.values || result.values.length === 0) {
       return null;
@@ -272,7 +292,7 @@ class DatabaseService {
     await this.db.run(`DELETE FROM ${TABLE_NAME} WHERE id = ?`, [id]);
   }
 
-  private rowToItem(row: any): DashItem {
+  private rowToItem(row: RawItemRow): DashItem {
     return {
       id: row.id,
       title: row.title,
@@ -286,10 +306,10 @@ class DatabaseService {
       attachments: JSON.parse(row.attachments || '[]'),
       isCompleted: row.is_completed === 1,
       dueDate: row.due_date || undefined,
-      priority: row.priority || 'none',
+      priority: (row.priority || 'none') as Priority,
       tags: JSON.parse(row.tags || '[]'),
       isRecurring: row.is_recurring === 1,
-      recurrenceRule: row.recurrence_rule || undefined,
+      recurrenceRule: (row.recurrence_rule || undefined) as RecurrenceRule | undefined,
       hasReminder: row.has_reminder === 1,
       reminderDate: row.reminder_date || undefined,
     };
@@ -298,10 +318,9 @@ class DatabaseService {
   async getPreference(key: string): Promise<string | null> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const result = await this.db.query(
-      `SELECT value FROM ${PREFERENCES_TABLE} WHERE key = ?`,
-      [key]
-    );
+    const result = await this.db.query(`SELECT value FROM ${PREFERENCES_TABLE} WHERE key = ?`, [
+      key,
+    ]);
 
     if (!result.values || result.values.length === 0) {
       return null;
@@ -313,10 +332,10 @@ class DatabaseService {
   async setPreference(key: string, value: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    await this.db.run(
-      `INSERT OR REPLACE INTO ${PREFERENCES_TABLE} (key, value) VALUES (?, ?)`,
-      [key, value]
-    );
+    await this.db.run(`INSERT OR REPLACE INTO ${PREFERENCES_TABLE} (key, value) VALUES (?, ?)`, [
+      key,
+      value,
+    ]);
   }
 
   async close(): Promise<void> {
@@ -336,7 +355,7 @@ class DatabaseService {
     if (!this.db) throw new Error('Database not initialized');
 
     const now = new Date();
-    
+
     // Helper to create dates relative to today
     const daysFromNow = (days: number): string => {
       const date = new Date(now);
@@ -625,8 +644,8 @@ export function setOnSeedComplete(callback: () => Promise<void>): void {
   onSeedComplete = callback;
 }
 
-// Expose seed function globally for easy access in simulator
-if (typeof window !== 'undefined') {
+// Expose seed function globally for easy access in simulator (dev only)
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   (window as any).seedDemoData = async () => {
     await databaseService.seedDemoData();
     if (onSeedComplete) {

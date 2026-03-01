@@ -11,12 +11,14 @@ import { notificationService } from './notificationService';
 import type { DashItem } from '../models/DashItem';
 
 // Helper to get scheduled notification from mock
-function getScheduledNotification(): {
-  id: number;
-  title: string;
-  body: string;
-  extra: { itemId: string };
-} | undefined {
+function getScheduledNotification():
+  | {
+      id: number;
+      title: string;
+      body: string;
+      extra: { itemId: string };
+    }
+  | undefined {
   const calls = mockLocalNotifications.schedule.mock.calls as unknown[][];
   if (calls.length === 0) return undefined;
   const lastCall = calls[calls.length - 1] as [{ notifications: unknown[] }] | undefined;

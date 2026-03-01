@@ -1,9 +1,9 @@
 /**
  * Database Schema Definition
- * 
+ *
  * This file defines the canonical schema for the dash_items table.
  * Both TypeScript and Swift database operations MUST stay in sync with this schema.
- * 
+ *
  * When modifying:
  * 1. Update this file
  * 2. Update database.ts createTable()
@@ -31,7 +31,12 @@ export const DASH_ITEMS_COLUMNS = {
   attachments: { type: 'TEXT', nullable: true, jsonArray: true },
   is_completed: { type: 'INTEGER', nullable: false, default: 0 },
   due_date: { type: 'TEXT', nullable: true },
-  priority: { type: 'TEXT', nullable: false, default: 'none', values: ['none', 'low', 'medium', 'high'] },
+  priority: {
+    type: 'TEXT',
+    nullable: false,
+    default: 'none',
+    values: ['none', 'low', 'medium', 'high'],
+  },
   tags: { type: 'TEXT', nullable: true, jsonArray: true },
   is_recurring: { type: 'INTEGER', nullable: false, default: 0 },
   recurrence_rule: { type: 'TEXT', nullable: true, values: ['daily', 'weekly', 'monthly'] },

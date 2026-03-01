@@ -52,7 +52,7 @@ export function parseQuickInput(text: string): ParsedInput {
   if (parsedDates.length > 0 && parsedDates[0]) {
     const firstDate = parsedDates[0];
     dueDate = firstDate.start.date();
-    
+
     // Remove the date text from the title
     const dateText = firstDate.text;
     cleanedText = cleanedText.replace(dateText, '').trim();

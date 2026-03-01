@@ -1,6 +1,6 @@
 /**
  * Database Sync Tests
- * 
+ *
  * These tests ensure that the Swift (DashDatabase.swift) and TypeScript (database.ts)
  * database operations stay in sync. This is critical for Siri integration where
  * Swift creates items that TypeScript reads.
@@ -9,9 +9,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { 
-  DASH_ITEMS_COLUMNS, 
-  COLUMN_ORDER, 
+import {
+  DASH_ITEMS_COLUMNS,
+  COLUMN_ORDER,
   SIRI_TASK_DEFAULTS,
   DB_NAME,
   TABLE_NAME,
@@ -22,14 +22,18 @@ const SWIFT_DB_PATH = path.join(__dirname, '../../ios/App/App/DashDatabase.swift
 const TS_DB_PATH = path.join(__dirname, './database.ts');
 
 describe('Database Schema Sync', () => {
-  
   describe('Schema Definition', () => {
     it('should have all required columns defined', () => {
       const requiredColumns = [
-        'id', 'title', 'created_date', 'is_completed', 'priority',
-        'is_recurring', 'has_reminder'
+        'id',
+        'title',
+        'created_date',
+        'is_completed',
+        'priority',
+        'is_recurring',
+        'has_reminder',
       ];
-      
+
       for (const col of requiredColumns) {
         expect(DASH_ITEMS_COLUMNS).toHaveProperty(col);
       }
@@ -37,7 +41,7 @@ describe('Database Schema Sync', () => {
 
     it('should have correct column order for INSERT statements', () => {
       expect(COLUMN_ORDER).toHaveLength(Object.keys(DASH_ITEMS_COLUMNS).length);
-      
+
       for (const col of COLUMN_ORDER) {
         expect(DASH_ITEMS_COLUMNS).toHaveProperty(col);
       }
@@ -47,7 +51,7 @@ describe('Database Schema Sync', () => {
       const jsonColumns = Object.entries(DASH_ITEMS_COLUMNS)
         .filter(([_, def]) => 'jsonArray' in def && def.jsonArray)
         .map(([name]) => name);
-      
+
       expect(jsonColumns).toContain('links');
       expect(jsonColumns).toContain('photo_paths');
       expect(jsonColumns).toContain('comments');
@@ -78,13 +82,13 @@ describe('Database Schema Sync', () => {
       // Check that Swift INSERT matches our column order
       const insertMatch = swiftContent.match(/INSERT INTO dash_items \(([\s\S]*?)\) VALUES/);
       expect(insertMatch).not.toBeNull();
-      
+
       if (insertMatch) {
         const columnsInInsert = insertMatch[1]
           .replace(/\s+/g, ' ')
           .split(',')
-          .map(c => c.trim());
-        
+          .map((c) => c.trim());
+
         expect(columnsInInsert).toEqual(COLUMN_ORDER);
       }
     });

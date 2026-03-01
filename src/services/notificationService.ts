@@ -2,15 +2,15 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import type { DashItem } from '../models/DashItem';
 
 class NotificationService {
-  private permissionRequested = false;
+  private permissionGranted = false;
 
   async requestPermission(): Promise<boolean> {
-    if (this.permissionRequested) return true;
+    if (this.permissionGranted) return true;
 
     try {
       const result = await LocalNotifications.requestPermissions();
-      this.permissionRequested = result.display === 'granted';
-      return this.permissionRequested;
+      this.permissionGranted = result.display === 'granted';
+      return this.permissionGranted;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
       return false;
@@ -103,7 +103,7 @@ class NotificationService {
     let hash = 0;
     for (let i = 0; i < itemId.length; i++) {
       const char = itemId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     // Ensure positive number and within safe range for notification IDs

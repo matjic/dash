@@ -1,9 +1,5 @@
 <template>
-  <ion-modal
-    :is-open="isOpen"
-    :css-class="'photo-viewer-modal'"
-    @didDismiss="onClose"
-  >
+  <ion-modal :is-open="isOpen" :css-class="'photo-viewer-modal'" @didDismiss="onClose">
     <ion-page>
       <ion-header class="ion-no-border" :class="{ 'header-hidden': isHeaderHidden }">
         <ion-toolbar>
@@ -114,7 +110,7 @@ watch(
       cleanupGesture();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -124,7 +120,7 @@ watch(
       await loadPhotoUris();
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 onMounted(() => {

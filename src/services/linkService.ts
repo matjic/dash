@@ -2,7 +2,7 @@ import { Browser } from '@capacitor/browser';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 // URL pattern that matches http/https URLs
-const URL_PATTERN = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+const URL_PATTERN = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
 
 export interface LinkSegment {
   type: 'text' | 'link';

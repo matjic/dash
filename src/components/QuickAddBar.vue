@@ -10,17 +10,8 @@
         @keyup.enter="onAdd"
         @input="onInputChange"
       />
-      <ion-icon
-        v-if="inputText"
-        :icon="closeCircle"
-        class="clear-icon"
-        @click="clearInput"
-      />
-      <button
-        class="add-button"
-        :disabled="!canAdd"
-        @click="onAdd"
-      >
+      <ion-icon v-if="inputText" :icon="closeCircle" class="clear-icon" @click="clearInput" />
+      <button class="add-button" :disabled="!canAdd" @click="onAdd">
         <ion-icon :icon="addCircle" />
       </button>
     </div>
@@ -47,11 +38,11 @@ const canAdd = computed(() => inputText.value.trim().length > 0);
 // Listen for keyboard events
 onMounted(async () => {
   inputText.value = searchText.value;
-  
+
   await Keyboard.addListener('keyboardWillShow', (info) => {
     keyboardHeight.value = info.keyboardHeight;
   });
-  
+
   await Keyboard.addListener('keyboardWillHide', () => {
     keyboardHeight.value = 0;
   });
@@ -138,7 +129,7 @@ async function onAdd() {
   padding: 12px 16px;
   height: 54px;
   box-sizing: border-box;
-  
+
   /* Liquid glass effect - Light mode */
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(20px);

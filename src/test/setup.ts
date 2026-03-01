@@ -104,7 +104,8 @@ vi.mock('@ionic/vue', async () => {
     ...actual,
     IonIcon: { template: '<span class="ion-icon"></span>' },
     IonSegment: {
-      template: '<div class="ion-segment" :value="value" @ionChange="$attrs.onIonChange"><slot /></div>',
+      template:
+        '<div class="ion-segment" :value="value" @ionChange="$attrs.onIonChange"><slot /></div>',
       props: ['value', 'modelValue'],
     },
     IonSegmentButton: {
@@ -150,12 +151,14 @@ config.global.stubs = {
   },
   IonLabel: { template: '<div class="ion-label"><slot /></div>' },
   IonInput: {
-    template: '<input class="ion-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+    template:
+      '<input class="ion-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     props: ['modelValue'],
     emits: ['update:modelValue'],
   },
   IonTextarea: {
-    template: '<textarea class="ion-textarea" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)"></textarea>',
+    template:
+      '<textarea class="ion-textarea" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)"></textarea>',
     props: ['modelValue'],
     emits: ['update:modelValue'],
   },

@@ -144,9 +144,7 @@ class PhotoService {
     if (paths.length === 0) return;
 
     try {
-      const fileUris = await Promise.all(
-        paths.map((path) => this.getPhotoFileUri(path))
-      );
+      const fileUris = await Promise.all(paths.map((path) => this.getPhotoFileUri(path)));
 
       await Share.share({
         files: fileUris,

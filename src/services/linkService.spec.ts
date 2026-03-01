@@ -44,9 +44,7 @@ describe('linkService', () => {
     });
 
     it('should identify multiple URLs', () => {
-      const result = parseTextWithLinks(
-        'Check https://google.com and https://github.com'
-      );
+      const result = parseTextWithLinks('Check https://google.com and https://github.com');
 
       expect(result).toHaveLength(4);
       expect(result[0]).toEqual({ type: 'text', content: 'Check ' });
@@ -100,7 +98,7 @@ describe('linkService', () => {
 
     it('should handle URLs with paths and query parameters', () => {
       const result = parseTextWithLinks(
-        'Visit https://example.com/path/to/page?query=value&other=123'
+        'Visit https://example.com/path/to/page?query=value&other=123',
       );
 
       expect(result[1]).toEqual({
@@ -189,20 +187,14 @@ describe('linkService', () => {
 
     it('should extract multiple URLs', () => {
       const result = extractUrls(
-        'Visit https://google.com and https://github.com and http://localhost:3000'
+        'Visit https://google.com and https://github.com and http://localhost:3000',
       );
 
-      expect(result).toEqual([
-        'https://google.com',
-        'https://github.com',
-        'http://localhost:3000',
-      ]);
+      expect(result).toEqual(['https://google.com', 'https://github.com', 'http://localhost:3000']);
     });
 
     it('should extract URLs with paths and parameters', () => {
-      const result = extractUrls(
-        'API: https://api.example.com/v1/users?limit=10'
-      );
+      const result = extractUrls('API: https://api.example.com/v1/users?limit=10');
 
       expect(result).toEqual(['https://api.example.com/v1/users?limit=10']);
     });

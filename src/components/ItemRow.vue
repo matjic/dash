@@ -1,19 +1,9 @@
 <template>
   <ion-item-sliding ref="slidingItem">
     <!-- Main item content -->
-    <ion-item
-      :class="itemClasses"
-      button
-      :detail="true"
-      @click="onClick"
-    >
+    <ion-item :class="itemClasses" button :detail="true" @click="onClick">
       <!-- Type icon -->
-      <ion-icon
-        slot="start"
-        :icon="checkmarkCircleOutline"
-        :color="iconColor"
-      />
-
+      <ion-icon slot="start" :icon="checkmarkCircleOutline" :color="iconColor" />
 
       <ion-label>
         <h2>{{ item.title }}</h2>
@@ -33,30 +23,17 @@
       />
 
       <!-- Photo indicator -->
-      <ion-icon
-        v-if="item.photoPaths.length > 0"
-        slot="end"
-        :icon="imageOutline"
-        color="medium"
-      />
+      <ion-icon v-if="item.photoPaths.length > 0" slot="end" :icon="imageOutline" color="medium" />
 
       <!-- Tags -->
-      <ion-badge
-        v-for="tag in displayTags"
-        :key="tag"
-        slot="end"
-        color="light"
-      >
+      <ion-badge v-for="tag in displayTags" :key="tag" slot="end" color="light">
         {{ tag }}
       </ion-badge>
     </ion-item>
 
     <!-- Right swipe options -->
     <ion-item-options side="end">
-      <ion-item-option
-        :color="item.isCompleted ? 'warning' : 'success'"
-        @click="onToggleComplete"
-      >
+      <ion-item-option :color="item.isCompleted ? 'warning' : 'success'" @click="onToggleComplete">
         <ion-icon
           slot="icon-only"
           :icon="item.isCompleted ? closeCircleOutline : checkmarkCircle"
@@ -90,6 +67,7 @@ import {
 } from 'ionicons/icons';
 import type { DashItem } from '../models/DashItem';
 import { isOverdue, getRelevantDate } from '../models/DashItem';
+import { MS_PER_DAY } from '../utils/constants';
 
 const props = defineProps<{
   item: DashItem;
@@ -131,7 +109,7 @@ const displayDate = computed(() => {
   const d = new Date(date);
   const now = new Date();
   const isToday = d.toDateString() === now.toDateString();
-  const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+  const isTomorrow = d.toDateString() === new Date(now.getTime() + MS_PER_DAY).toDateString();
 
   if (isToday) {
     return `Today at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
@@ -139,11 +117,11 @@ const displayDate = computed(() => {
   if (isTomorrow) {
     return `Tomorrow at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
   }
-  return d.toLocaleDateString([], { 
-    month: 'short', 
+  return d.toLocaleDateString([], {
+    month: 'short',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 });
 

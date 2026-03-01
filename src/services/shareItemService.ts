@@ -2,6 +2,8 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { photoService } from './photoService';
+import { formatDateNice, formatDateShort } from '../utils/date';
+import { capitalizeFirst } from '../utils/string';
 import type { DashItem } from '../models/DashItem';
 
 class ShareItemService {
@@ -69,7 +71,7 @@ class ShareItemService {
 
     // Due Date
     if (item.dueDate) {
-      lines.push(`📆 Due: ${this.formatDateNice(item.dueDate)}`);
+      lines.push(`📆 Due: ${formatDateNice(item.dueDate)}`);
     }
 
     // Location
@@ -80,7 +82,7 @@ class ShareItemService {
     // Priority
     if (item.priority && item.priority !== 'none') {
       const emoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
-      lines.push(`${emoji} ${this.capitalizeFirst(item.priority)} Priority`);
+      lines.push(`${emoji} ${capitalizeFirst(item.priority)} Priority`);
     }
 
     // Recurrence
@@ -107,10 +109,10 @@ class ShareItemService {
       lines.push('');
       lines.push('— Comments —');
       const sortedComments = [...item.comments].sort(
-        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
       );
       for (const comment of sortedComments) {
-        const date = this.formatDateShort(comment.createdDate);
+        const date = formatDateShort(comment.createdDate);
         lines.push(`${date}: ${comment.text}`);
       }
     }
@@ -124,9 +126,9 @@ class ShareItemService {
     // Footer with timestamps
     lines.push('');
     lines.push('—');
-    lines.push(`Created: ${this.formatDateShort(item.createdDate)}`);
+    lines.push(`Created: ${formatDateShort(item.createdDate)}`);
     if (item.updatedDate) {
-      lines.push(`Updated: ${this.formatDateShort(item.updatedDate)}`);
+      lines.push(`Updated: ${formatDateShort(item.updatedDate)}`);
     }
     lines.push('Shared from Dash');
 
@@ -174,7 +176,7 @@ class ShareItemService {
     // Build sections
     let dateSection = '';
     if (item.dueDate) {
-      dateSection = `<div class="meta-item"><span class="meta-icon">📆</span><span>Due: ${this.formatDateNice(item.dueDate)}</span></div>`;
+      dateSection = `<div class="meta-item"><span class="meta-icon">📆</span><span>Due: ${formatDateNice(item.dueDate)}</span></div>`;
     }
 
     let locationSection = '';
@@ -184,8 +186,9 @@ class ShareItemService {
 
     let prioritySection = '';
     if (item.priority && item.priority !== 'none') {
-      const priorityEmoji = item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
-      prioritySection = `<div class="meta-item"><span class="meta-icon">${priorityEmoji}</span><span>${this.capitalizeFirst(item.priority)} Priority</span></div>`;
+      const priorityEmoji =
+        item.priority === 'high' ? '🔴' : item.priority === 'medium' ? '🟡' : '🟢';
+      prioritySection = `<div class="meta-item"><span class="meta-icon">${priorityEmoji}</span><span>${capitalizeFirst(item.priority)} Priority</span></div>`;
     }
 
     let recurrenceSection = '';
@@ -218,9 +221,7 @@ class ShareItemService {
 
     let photosSection = '';
     if (embeddedImages.length > 0) {
-      const photoItems = embeddedImages
-        .map((src) => `<img src="${src}" class="photo">`)
-        .join('');
+      const photoItems = embeddedImages.map((src) => `<img src="${src}" class="photo">`).join('');
       photosSection = `
         <div class="section">
           <div class="section-title">Photos</div>
@@ -231,11 +232,11 @@ class ShareItemService {
     let commentsSection = '';
     if (item.comments && item.comments.length > 0) {
       const sortedComments = [...item.comments].sort(
-        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
       );
       const commentItems = sortedComments
         .map((comment) => {
-          const date = this.formatDateShort(comment.createdDate);
+          const date = formatDateShort(comment.createdDate);
           const edited = comment.updatedDate ? ' <span class="edited">(edited)</span>' : '';
           const image = commentImages[comment.id]
             ? `<img src="${commentImages[comment.id]}" class="comment-image">`
@@ -415,14 +416,18 @@ class ShareItemService {
     </div>
   </div>
   
-  ${(dateSection || locationSection || prioritySection || recurrenceSection || statusSection) ? `
+  ${
+    dateSection || locationSection || prioritySection || recurrenceSection || statusSection
+      ? `
   <div class="meta">
     ${statusSection}
     ${dateSection}
     ${locationSection}
     ${prioritySection}
     ${recurrenceSection}
-  </div>` : ''}
+  </div>`
+      : ''
+  }
   
   ${notesSection}
   ${linksSection}
@@ -432,8 +437,8 @@ class ShareItemService {
   
   <div class="footer">
     <div class="timestamps">
-      Created: ${this.formatDateShort(item.createdDate)}
-      ${item.updatedDate ? ` · Updated: ${this.formatDateShort(item.updatedDate)}` : ''}
+      Created: ${formatDateShort(item.createdDate)}
+      ${item.updatedDate ? ` · Updated: ${formatDateShort(item.updatedDate)}` : ''}
     </div>
     <div class="dash-logo">Dash</div>
   </div>
@@ -483,40 +488,12 @@ class ShareItemService {
    * Sanitize a string for use as a filename
    */
   private sanitizeFileName(name: string): string {
-    return name
-      .replace(/[^a-zA-Z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .substring(0, 50) || 'dash-item';
-  }
-
-  /**
-   * Format date in a nice, readable way
-   */
-  private formatDateNice(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const isThisYear = date.getFullYear() === now.getFullYear();
-
-    return date.toLocaleString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: isThisYear ? undefined : 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  }
-
-  /**
-   * Format date in short form
-   */
-  private formatDateShort(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    return (
+      name
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50) || 'dash-item'
+    );
   }
 
   private escapeHtml(str: string): string {
@@ -528,9 +505,6 @@ class ShareItemService {
       .replace(/'/g, '&#039;');
   }
 
-  private capitalizeFirst(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
 }
 
 export const shareItemService = new ShareItemService();

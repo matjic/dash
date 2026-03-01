@@ -8,9 +8,7 @@
             <ion-icon slot="icon-only" :icon="chevronBackOutline" />
           </ion-button>
           <!-- Edit mode for existing item: show Cancel -->
-          <ion-button v-else @click="exitEditMode">
-            Cancel
-          </ion-button>
+          <ion-button v-else @click="exitEditMode"> Cancel </ion-button>
         </ion-buttons>
         <ion-title>{{ headerTitle }}</ion-title>
         <ion-buttons slot="end">
@@ -19,14 +17,10 @@
             <ion-button @click="showShareOptions">
               <ion-icon slot="icon-only" :icon="shareOutline" />
             </ion-button>
-            <ion-button @click="enterEditMode">
-              Edit
-            </ion-button>
+            <ion-button @click="enterEditMode"> Edit </ion-button>
           </template>
           <!-- Edit mode: show Save button -->
-          <ion-button v-else :strong="true" :disabled="!canSave" @click="onSave">
-            Save
-          </ion-button>
+          <ion-button v-else :strong="true" :disabled="!canSave" @click="onSave"> Save </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -115,12 +109,7 @@
             <ion-item-divider>
               <ion-label>Links</ion-label>
             </ion-item-divider>
-            <ion-item
-              v-for="link in item.links"
-              :key="link"
-              button
-              @click="openExternalLink(link)"
-            >
+            <ion-item v-for="link in item.links" :key="link" button @click="openExternalLink(link)">
               <ion-icon :icon="linkOutline" slot="start" color="primary" />
               <ion-label color="primary" class="link-label">{{ link }}</ion-label>
               <ion-icon :icon="openOutline" slot="end" color="medium" />
@@ -150,68 +139,24 @@
           <ion-item-divider>
             <ion-label>Comments</ion-label>
           </ion-item-divider>
-          
-          <!-- Add Comment Input -->
-          <ion-item lines="none" class="add-comment-container">
-            <div class="add-comment-box">
-              <textarea
-                v-model="newCommentText"
-                class="comment-textarea"
-                placeholder="Add a comment..."
-                rows="3"
-              ></textarea>
-              <div class="comment-actions">
-                <ion-button
-                  fill="clear"
-                  size="small"
-                  @click="handleAddCommentWithPhoto"
-                >
-                  <ion-icon slot="icon-only" :icon="cameraOutline" />
-                </ion-button>
-                <ion-button
-                  fill="solid"
-                  size="small"
-                  :disabled="!newCommentText.trim()"
-                  @click="handleAddComment"
-                >
-                  Add
-                </ion-button>
-              </div>
-            </div>
-          </ion-item>
-          
-          <template v-if="sortedComments.length > 0">
-            <ion-item v-for="comment in sortedComments" :key="comment.id" lines="full" class="comment-item">
-              <ion-label class="ion-text-wrap">
-                <p class="comment-date">
-                  {{ formatCommentDate(comment.createdDate) }}
-                  <span v-if="comment.updatedDate" class="edited-badge">(edited)</span>
-                </p>
-                <div class="comment-text">
-                  <RichText :text="comment.text" />
-                </div>
-                <div v-if="comment.imagePath" class="comment-image" @click="viewCommentPhoto(comment.imagePath)">
-                  <img :src="commentPhotoUris[comment.imagePath]" />
-                </div>
-              </ion-label>
-              <ion-buttons slot="end">
-                <ion-button fill="clear" size="small" @click="showEditComment(comment)">
-                  <ion-icon slot="icon-only" :icon="createOutline" color="primary" />
-                </ion-button>
-                <ion-button fill="clear" size="small" @click="confirmDeleteComment(comment)">
-                  <ion-icon slot="icon-only" :icon="trashOutline" color="danger" />
-                </ion-button>
-              </ion-buttons>
-            </ion-item>
-          </template>
-          <ion-item v-else lines="none">
-            <ion-label color="medium">No comments yet</ion-label>
-          </ion-item>
+
+          <CommentSection
+            v-model:local-text="newCommentText"
+            :sorted-comments="sortedComments"
+            :comment-photo-uris="commentPhotoUris"
+            @add-comment="handleAddComment"
+            @add-comment-with-photo="handleAddCommentWithPhoto"
+            @edit-comment="showEditComment"
+            @delete-comment="confirmDeleteComment"
+            @view-comment-photo="viewCommentPhoto"
+          />
 
           <!-- Timestamps -->
           <div class="timestamps-section">
             <p class="timestamp-text">Created {{ formatRelativeDate(item.createdDate) }}</p>
-            <p v-if="item.updatedDate" class="timestamp-text">Updated {{ formatRelativeDate(item.updatedDate) }}</p>
+            <p v-if="item.updatedDate" class="timestamp-text">
+              Updated {{ formatRelativeDate(item.updatedDate) }}
+            </p>
           </div>
         </ion-list>
       </template>
@@ -240,11 +185,7 @@
 
           <!-- Priority -->
           <ion-item>
-            <ion-select
-              v-model="item.priority"
-              label="Priority"
-              interface="action-sheet"
-            >
+            <ion-select v-model="item.priority" label="Priority" interface="action-sheet">
               <ion-select-option value="none">None</ion-select-option>
               <ion-select-option value="low">Low</ion-select-option>
               <ion-select-option value="medium">Medium</ion-select-option>
@@ -258,11 +199,7 @@
           </ion-item>
 
           <ion-item v-if="item.isRecurring">
-            <ion-select
-              v-model="item.recurrenceRule"
-              label="Repeat"
-              interface="action-sheet"
-            >
+            <ion-select v-model="item.recurrenceRule" label="Repeat" interface="action-sheet">
               <ion-select-option value="daily">Daily</ion-select-option>
               <ion-select-option value="weekly">Weekly</ion-select-option>
               <ion-select-option value="monthly">Monthly</ion-select-option>
@@ -319,11 +256,7 @@
 
           <ion-item v-if="item.tags.length > 0">
             <div class="tags-container">
-              <ion-chip
-                v-for="(tag, index) in item.tags"
-                :key="tag"
-                @click="removeTag(index)"
-              >
+              <ion-chip v-for="(tag, index) in item.tags" :key="tag" @click="removeTag(index)">
                 {{ tag }}
                 <ion-icon :icon="closeCircle" />
               </ion-chip>
@@ -390,63 +323,17 @@
           <ion-item-divider>
             <ion-label>Comments</ion-label>
           </ion-item-divider>
-          
-          <!-- Add Comment Input -->
-          <ion-item lines="none" class="add-comment-container">
-            <div class="add-comment-box">
-              <textarea
-                v-model="newCommentText"
-                class="comment-textarea"
-                placeholder="Add a comment..."
-                rows="3"
-              ></textarea>
-              <div class="comment-actions">
-                <ion-button
-                  fill="clear"
-                  size="small"
-                  @click="handleAddCommentWithPhoto"
-                >
-                  <ion-icon slot="icon-only" :icon="cameraOutline" />
-                </ion-button>
-                <ion-button
-                  fill="solid"
-                  size="small"
-                  :disabled="!newCommentText.trim()"
-                  @click="handleAddComment"
-                >
-                  Add
-                </ion-button>
-              </div>
-            </div>
-          </ion-item>
-          
-          <template v-if="sortedComments.length > 0">
-            <ion-item v-for="comment in sortedComments" :key="comment.id" lines="full" class="comment-item">
-              <ion-label class="ion-text-wrap">
-                <p class="comment-date">
-                  {{ formatCommentDate(comment.createdDate) }}
-                  <span v-if="comment.updatedDate" class="edited-badge">(edited)</span>
-                </p>
-                <div class="comment-text">
-                  <RichText :text="comment.text" />
-                </div>
-                <div v-if="comment.imagePath" class="comment-image" @click="viewCommentPhoto(comment.imagePath)">
-                  <img :src="commentPhotoUris[comment.imagePath]" />
-                </div>
-              </ion-label>
-              <ion-buttons slot="end">
-                <ion-button fill="clear" size="small" @click="showEditComment(comment)">
-                  <ion-icon slot="icon-only" :icon="createOutline" color="primary" />
-                </ion-button>
-                <ion-button fill="clear" size="small" @click="confirmDeleteComment(comment)">
-                  <ion-icon slot="icon-only" :icon="trashOutline" color="danger" />
-                </ion-button>
-              </ion-buttons>
-            </ion-item>
-          </template>
-          <ion-item v-else lines="none">
-            <ion-label color="medium">No comments yet</ion-label>
-          </ion-item>
+
+          <CommentSection
+            v-model:local-text="newCommentText"
+            :sorted-comments="sortedComments"
+            :comment-photo-uris="commentPhotoUris"
+            @add-comment="handleAddComment"
+            @add-comment-with-photo="handleAddCommentWithPhoto"
+            @edit-comment="showEditComment"
+            @delete-comment="confirmDeleteComment"
+            @view-comment-photo="viewCommentPhoto"
+          />
         </ion-list>
       </template>
     </ion-content>
@@ -462,9 +349,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { useIonRouter } from '@ionic/vue';
 import {
   IonPage,
   IonHeader,
@@ -502,191 +386,54 @@ import {
   notificationsOutline,
   locationOutline,
   openOutline,
-  createOutline,
   shareOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { v4 as uuidv4 } from 'uuid';
-import { useItems } from '../composables/useItems';
+import { AppLauncher } from '@capacitor/app-launcher';
 import { photoService } from '../services/photoService';
 import { openLink } from '../services/linkService';
 import { shareItemService } from '../services/shareItemService';
-import { consumePendingSharedData } from '../services/shareService';
-import { generateGoogleCalendarLink, canGenerateCalendarLink } from '../services/calendarLinkService';
-import { AppLauncher } from '@capacitor/app-launcher';
+import {
+  generateGoogleCalendarLink,
+  canGenerateCalendarLink,
+} from '../services/calendarLinkService';
 import type { DashItem, Comment } from '../models/DashItem';
-import { createEmptyItem } from '../models/DashItem';
+import { formatDate, formatRelativeDate } from '../utils/date';
+import { capitalizeFirst } from '../utils/string';
+import { useItemDetail } from '../composables/useItemDetail';
 import RichText from '../components/RichText.vue';
 import PhotoViewer from '../components/PhotoViewer.vue';
+import CommentSection from '../components/CommentSection.vue';
 
-const route = useRoute();
-const ionRouter = useIonRouter();
-const { items, createItem, updateItem } = useItems();
-
-// Track the original item ID separately to handle editing state correctly
-const originalItemId = ref<string | undefined>(undefined);
-const isExistingItem = computed(() => !!originalItemId.value);
-
-// View mode state: existing items start in view mode, new items start in edit mode
-const isViewMode = ref(true);
-
-const item = reactive<DashItem>(createEmptyItem());
-const originalItemSnapshot = ref<DashItem | null>(null);
-const photoUris = ref<Record<string, string>>({});
-const commentPhotoUris = ref<Record<string, string>>({});
-
-// Photo viewer state
-const isPhotoViewerOpen = ref(false);
-const photoViewerIndex = ref(0);
-
-// New comment input state
-const newCommentText = ref('');
-
-const canSave = computed(() => item.title.trim().length > 0);
-
-// Comments sorted in reverse chronological order (newest first)
-const sortedComments = computed(() => {
-  if (!item.comments || item.comments.length === 0) return [];
-  return [...item.comments].sort((a, b) => {
-    return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
-  });
-});
-
-const headerTitle = computed(() => {
-  if (isViewMode.value && isExistingItem.value) {
-    return 'Task';
-  }
-  return isExistingItem.value ? 'Edit Task' : 'New Task';
-});
-
-const priorityColor = computed(() => {
-  switch (item.priority) {
-    case 'high':
-      return 'danger';
-    case 'medium':
-      return 'warning';
-    case 'low':
-      return 'success';
-    default:
-      return 'medium';
-  }
-});
-
-onMounted(async () => {
-  const paramId = route.params.id as string | undefined;
-  
-  // Check for query parameters from shortcuts/deep links
-  const queryTitle = route.query.title as string | undefined;
-  
-  if (paramId && paramId !== 'new') {
-    originalItemId.value = paramId;
-    const existingItem = items.value.find((i) => i.id === paramId);
-    if (existingItem) {
-      Object.assign(item, existingItem);
-      originalItemSnapshot.value = JSON.parse(JSON.stringify(existingItem));
-      isViewMode.value = true; // Existing items start in view mode
-      await loadPhotoUris();
-      await loadCommentPhotoUris();
-    } else {
-      // Item not found, go back
-      ionRouter.back();
-    }
-  } else {
-    // New item - start in edit mode
-    isViewMode.value = false;
-    
-    // Check for shared data from Share Extension
-    const queryShared = route.query.shared as string | undefined;
-    if (queryShared === 'true') {
-      const sharedData = consumePendingSharedData();
-      if (sharedData) {
-        // Pre-populate with shared content
-        item.title = sharedData.suggestedTitle;
-        item.notes = sharedData.notes;
-        item.links = sharedData.links;
-        item.photoPaths = sharedData.photoPaths;
-        item.attachments = sharedData.attachments;
-        
-        // Load photo URIs for the shared images
-        await loadPhotoUris();
-      }
-    }
-    
-    // Apply query parameters if present (from shortcuts/Siri)
-    if (queryTitle) {
-      item.title = queryTitle;
-    }
-  }
-});
-
-watch(() => item.photoPaths, loadPhotoUris, { deep: true });
-watch(() => item.comments, loadCommentPhotoUris, { deep: true });
-
-async function loadPhotoUris() {
-  for (const path of item.photoPaths) {
-    if (!photoUris.value[path]) {
-      photoUris.value[path] = await photoService.getPhotoUri(path);
-    }
-  }
-}
-
-async function loadCommentPhotoUris() {
-  if (!item.comments) return;
-  for (const comment of item.comments) {
-    if (comment.imagePath && !commentPhotoUris.value[comment.imagePath]) {
-      commentPhotoUris.value[comment.imagePath] = await photoService.getPhotoUri(comment.imagePath);
-    }
-  }
-}
-
-function capitalizeFirst(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function formatRelativeDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  
-  return date.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
+const {
+  item,
+  isExistingItem,
+  isViewMode,
+  photoUris,
+  commentPhotoUris,
+  isPhotoViewerOpen,
+  photoViewerIndex,
+  newCommentText,
+  canSave,
+  sortedComments,
+  headerTitle,
+  priorityColor,
+  enterEditMode,
+  exitEditMode,
+  onBack,
+  viewPhoto,
+  closePhotoViewer,
+  removePhoto,
+  handleAddComment,
+  handleAddCommentWithPhoto,
+  updateComment,
+  deleteComment,
+  viewCommentPhoto,
+  onSave,
+} = useItemDetail();
 
 function getTheme(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function enterEditMode() {
-  // Save snapshot before editing
-  originalItemSnapshot.value = JSON.parse(JSON.stringify(item));
-  isViewMode.value = false;
-}
-
-function exitEditMode() {
-  // Restore original values
-  if (originalItemSnapshot.value) {
-    Object.assign(item, originalItemSnapshot.value);
-  }
-  isViewMode.value = true;
-}
-
-function onBack() {
-  ionRouter.back();
 }
 
 async function openExternalLink(url: string) {
@@ -695,8 +442,8 @@ async function openExternalLink(url: string) {
 
 async function showShareOptions() {
   await Haptics.impact({ style: ImpactStyle.Light });
-  
-  const buttons: any[] = [
+
+  const buttons: { text: string; role?: string; handler?: () => void }[] = [
     {
       text: 'Share as Text',
       handler: () => {
@@ -710,8 +457,7 @@ async function showShareOptions() {
       },
     },
   ];
-  
-  // Add Google Calendar option if the item has a due date
+
   if (canGenerateCalendarLink(item as DashItem)) {
     buttons.push({
       text: 'Add to Google Calendar',
@@ -720,17 +466,14 @@ async function showShareOptions() {
       },
     });
   }
-  
-  buttons.push({
-    text: 'Cancel',
-    role: 'cancel',
-  });
-  
+
+  buttons.push({ text: 'Cancel', role: 'cancel' });
+
   const actionSheet = await actionSheetController.create({
     header: 'Share',
     buttons,
   });
-  
+
   await actionSheet.present();
 }
 
@@ -754,33 +497,21 @@ async function addToGoogleCalendar() {
   const url = generateGoogleCalendarLink(item as DashItem);
   if (url) {
     await Haptics.impact({ style: ImpactStyle.Light });
-    // Open in external Safari (not in-app browser) so it has access
-    // to the user's Google login session
     await AppLauncher.openUrl({ url });
   }
 }
 
-// Photo viewer functions
-function viewPhoto(index: number) {
-  photoViewerIndex.value = index;
-  isPhotoViewerOpen.value = true;
-}
-
-function closePhotoViewer() {
-  isPhotoViewerOpen.value = false;
-}
-
 async function pickDueDate() {
   try {
-    const currentDate = item.dueDate ? new Date(item.dueDate).toISOString() : new Date().toISOString();
+    const currentDate = item.dueDate
+      ? new Date(item.dueDate).toISOString()
+      : new Date().toISOString();
     const result = await DatePicker.present({
       mode: 'dateAndTime',
       format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
       date: currentDate,
       theme: getTheme(),
-      ios: {
-        style: 'inline',
-      },
+      ios: { style: 'inline' },
     });
     if (result?.value) {
       item.dueDate = result.value;
@@ -793,16 +524,16 @@ async function pickDueDate() {
 async function pickReminderDate() {
   try {
     const now = new Date();
-    const currentDate = item.reminderDate ? new Date(item.reminderDate).toISOString() : now.toISOString();
+    const currentDate = item.reminderDate
+      ? new Date(item.reminderDate).toISOString()
+      : now.toISOString();
     const result = await DatePicker.present({
       mode: 'dateAndTime',
       format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
       date: currentDate,
       min: now.toISOString(),
       theme: getTheme(),
-      ios: {
-        style: 'inline',
-      },
+      ios: { style: 'inline' },
     });
     if (result?.value) {
       item.reminderDate = result.value;
@@ -815,18 +546,9 @@ async function pickReminderDate() {
 async function showAddTag() {
   const alert = await alertController.create({
     header: 'Add Tag',
-    inputs: [
-      {
-        name: 'tag',
-        type: 'text',
-        placeholder: 'Enter tag name',
-      },
-    ],
+    inputs: [{ name: 'tag', type: 'text', placeholder: 'Enter tag name' }],
     buttons: [
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
+      { text: 'Cancel', role: 'cancel' },
       {
         text: 'Add',
         handler: (data) => {
@@ -849,18 +571,9 @@ function removeTag(index: number) {
 async function showAddLink() {
   const alert = await alertController.create({
     header: 'Add Link',
-    inputs: [
-      {
-        name: 'link',
-        type: 'url',
-        placeholder: 'https://example.com',
-      },
-    ],
+    inputs: [{ name: 'link', type: 'url', placeholder: 'https://example.com' }],
     buttons: [
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
+      { text: 'Cancel', role: 'cancel' },
       {
         text: 'Add',
         handler: (data) => {
@@ -902,109 +615,11 @@ async function showPhotoOptions() {
           }
         },
       },
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
+      { text: 'Cancel', role: 'cancel' },
     ],
   });
 
   await actionSheet.present();
-}
-
-async function removePhoto(index: number) {
-  const path = item.photoPaths[index];
-  if (!path) return;
-
-  // Only delete from filesystem if editing an existing item
-  // For new items, the photo will be saved when the item is saved
-  if (isExistingItem.value) {
-    await photoService.deletePhoto(path);
-  }
-
-  item.photoPaths.splice(index, 1);
-  delete photoUris.value[path];
-}
-
-// Comment functions
-function formatCommentDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function addComment(text: string, imagePath?: string) {
-  if (!item.comments) {
-    item.comments = [];
-  }
-  
-  const newComment: Comment = {
-    id: uuidv4(),
-    text,
-    imagePath,
-    createdDate: new Date().toISOString(),
-  };
-  
-  item.comments.push(newComment);
-  
-  // Auto-save for existing items in view mode
-  if (isExistingItem.value && isViewMode.value) {
-    saveItemQuietly();
-  }
-}
-
-async function addCommentWithPhoto(text: string) {
-  const actionSheet = await actionSheetController.create({
-    header: 'Add Photo',
-    buttons: [
-      {
-        text: 'Take Photo',
-        handler: async () => {
-          const path = await photoService.capturePhoto();
-          if (path) {
-            addComment(text, path);
-            // Load the new photo URI
-            commentPhotoUris.value[path] = await photoService.getPhotoUri(path);
-          }
-        },
-      },
-      {
-        text: 'Choose from Library',
-        handler: async () => {
-          const path = await photoService.pickPhoto();
-          if (path) {
-            addComment(text, path);
-            // Load the new photo URI
-            commentPhotoUris.value[path] = await photoService.getPhotoUri(path);
-          }
-        },
-      },
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
-    ],
-  });
-
-  await actionSheet.present();
-}
-
-function handleAddComment() {
-  const text = newCommentText.value.trim();
-  if (text) {
-    addComment(text);
-    newCommentText.value = '';
-  }
-}
-
-async function handleAddCommentWithPhoto() {
-  const text = newCommentText.value.trim();
-  await addCommentWithPhoto(text);
-  newCommentText.value = '';
 }
 
 async function showEditComment(comment: Comment) {
@@ -1019,10 +634,7 @@ async function showEditComment(comment: Comment) {
       },
     ],
     buttons: [
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
+      { text: 'Cancel', role: 'cancel' },
       {
         text: 'Save',
         handler: (data) => {
@@ -1038,38 +650,12 @@ async function showEditComment(comment: Comment) {
   await alert.present();
 }
 
-function updateComment(commentId: string, text: string) {
-  if (!item.comments) return;
-  
-  const commentIndex = item.comments.findIndex((c) => c.id === commentId);
-  if (commentIndex === -1) return;
-  
-  const existingComment = item.comments[commentIndex];
-  if (!existingComment) return;
-  
-  item.comments[commentIndex] = {
-    id: existingComment.id,
-    text,
-    imagePath: existingComment.imagePath,
-    createdDate: existingComment.createdDate,
-    updatedDate: new Date().toISOString(),
-  };
-  
-  // Auto-save for existing items in view mode
-  if (isExistingItem.value && isViewMode.value) {
-    saveItemQuietly();
-  }
-}
-
 async function confirmDeleteComment(comment: Comment) {
   const alert = await alertController.create({
     header: 'Delete Comment',
     message: 'Are you sure you want to delete this comment?',
     buttons: [
-      {
-        text: 'Cancel',
-        role: 'cancel',
-      },
+      { text: 'Cancel', role: 'cancel' },
       {
         text: 'Delete',
         role: 'destructive',
@@ -1081,75 +667,6 @@ async function confirmDeleteComment(comment: Comment) {
   });
 
   await alert.present();
-}
-
-async function deleteComment(comment: Comment) {
-  const commentIndex = item.comments?.findIndex((c) => c.id === comment.id);
-  if (commentIndex !== undefined && commentIndex !== -1 && item.comments) {
-    // Delete associated photo if exists
-    if (comment.imagePath) {
-      await photoService.deletePhoto(comment.imagePath);
-      delete commentPhotoUris.value[comment.imagePath];
-    }
-    
-    item.comments.splice(commentIndex, 1);
-    
-    // Auto-save for existing items in view mode
-    if (isExistingItem.value && isViewMode.value) {
-      saveItemQuietly();
-    }
-  }
-}
-
-function viewCommentPhoto(imagePath: string) {
-  // Find the index of the comment with this image
-  const comment = item.comments?.find((c) => c.imagePath === imagePath);
-  if (comment) {
-    // For now, we'll use a simple approach - open in a modal or action sheet
-    // In the future, this could be enhanced with a proper photo viewer
-    window.open(commentPhotoUris.value[imagePath], '_blank');
-  }
-}
-
-async function saveItemQuietly() {
-  try {
-    if (originalItemId.value) {
-      await updateItem({ ...item, id: originalItemId.value } as DashItem);
-      originalItemSnapshot.value = JSON.parse(JSON.stringify(item));
-    }
-  } catch (error) {
-    console.error('Error saving item:', error);
-  }
-}
-
-async function onSave() {
-  if (!canSave.value) return;
-
-  try {
-    if (isExistingItem.value && originalItemId.value) {
-      // Ensure we're updating with the original ID
-      await updateItem({ ...item, id: originalItemId.value } as DashItem);
-      // After save, go back to view mode
-      originalItemSnapshot.value = JSON.parse(JSON.stringify(item));
-      isViewMode.value = true;
-    } else {
-      await createItem(item as Omit<DashItem, 'id' | 'createdDate'>);
-      ionRouter.back();
-    }
-
-    // Haptic feedback is best-effort; never block save
-    Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
-  } catch (error) {
-    console.error('Error saving item:', error);
-
-    const alert = await alertController.create({
-      header: 'Error',
-      message: 'Failed to save item. Please try again.',
-      buttons: ['OK'],
-    });
-
-    await alert.present();
-  }
 }
 </script>
 
@@ -1209,85 +726,6 @@ ion-chip {
 
 .link-label {
   text-decoration: underline;
-}
-
-/* Comment styles */
-.comment-item {
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-}
-
-.comment-date {
-  font-size: 0.75rem;
-  color: var(--ion-color-medium);
-  margin-bottom: 4px;
-}
-
-.edited-badge {
-  font-style: italic;
-  margin-left: 4px;
-}
-
-.comment-text {
-  margin-bottom: 8px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.comment-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.comment-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Add comment input styles */
-.add-comment-container {
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-}
-
-.add-comment-box {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.comment-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 12px;
-  border: 1px solid var(--ion-color-light-shade);
-  border-radius: 12px;
-  background: var(--ion-background-color);
-  color: var(--ion-text-color);
-  font-family: inherit;
-  font-size: 1rem;
-  resize: none;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.comment-textarea:focus {
-  border-color: var(--ion-color-primary);
-}
-
-.comment-textarea::placeholder {
-  color: var(--ion-color-medium);
-}
-
-.comment-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
 }
 
 /* Timestamps section */

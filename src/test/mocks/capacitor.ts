@@ -49,7 +49,7 @@ export const mockCamera = {
       path: '/mock/photo/path.jpg',
       webPath: 'blob:http://localhost/mock',
       format: 'jpeg',
-    })
+    }),
   ),
   requestPermissions: vi.fn(() => Promise.resolve({ camera: 'granted', photos: 'granted' })),
   checkPermissions: vi.fn(() => Promise.resolve({ camera: 'granted', photos: 'granted' })),

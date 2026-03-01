@@ -1,7 +1,7 @@
 <template>
   <ion-page>
-    <ion-content 
-      :scroll-y="true" 
+    <ion-content
+      :scroll-y="true"
       class="main-content"
       :scroll-events="true"
       @ionScroll="onScroll"
@@ -10,16 +10,8 @@
     >
       <!-- Header -->
       <div class="app-header">
-        <img 
-          :src="logoLight" 
-          alt="Dash" 
-          class="app-logo app-logo-light"
-        />
-        <img 
-          :src="logoDark" 
-          alt="Dash" 
-          class="app-logo app-logo-dark"
-        />
+        <img :src="logoLight" alt="Dash" class="app-logo app-logo-light" />
+        <img :src="logoDark" alt="Dash" class="app-logo app-logo-dark" />
         <h1 class="app-title">Dash</h1>
       </div>
 
@@ -46,21 +38,21 @@
           @delete="onDelete"
         />
       </ion-list>
-      
+
       <!-- Spacer for floating elements -->
       <div class="bottom-spacer"></div>
     </ion-content>
 
     <!-- Floating toggle button -->
-    <button 
+    <button
       class="floating-completed-toggle"
-      :class="{ 'toggle-active': showCompleted, 'toggle-hidden': isFilterHidden }"
+      :class="{ 'toggle-active': showCompleted, 'toggle-hidden': !isFilterVisible }"
       @click="onToggleShowCompleted"
       :aria-label="showCompleted ? 'Hide completed' : 'Show completed'"
     >
       <ion-icon :icon="showCompleted ? checkmarkCircle : checkmarkCircleOutline" />
     </button>
-    
+
     <QuickAddBar ref="quickAddRef" />
   </ion-page>
 </template>
@@ -68,14 +60,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  IonPage,
-  IonContent,
-  IonList,
-  IonIcon,
-  IonSpinner,
-  alertController,
-} from '@ionic/vue';
+import { IonPage, IonContent, IonList, IonIcon, IonSpinner, alertController } from '@ionic/vue';
 import { clipboardOutline, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 import logoLight from '../assets/dash_d_tight_light.svg';
 import logoDark from '../assets/dash_d_tight_dark.svg';
@@ -86,21 +71,13 @@ import { useItems } from '../composables/useItems';
 import type { DashItem } from '../models/DashItem';
 
 const router = useRouter();
-const {
-  filteredItems,
-  isLoading,
-  showCompleted,
-  toggleComplete,
-  toggleShowCompleted,
-  deleteItem,
-} = useItems();
+const { filteredItems, isLoading, showCompleted, toggleComplete, toggleShowCompleted, deleteItem } =
+  useItems();
 
 const quickAddRef = ref<InstanceType<typeof QuickAddBar> | null>(null);
-const isFilterHidden = ref(false);
+const isFilterVisible = ref(true);
 let lastScrollTop = 0;
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
-
-
 
 // Dismiss keyboard when tapping outside the input area
 function onContentClick(event: Event) {
@@ -119,22 +96,22 @@ function onScrollStart() {
 function onScroll(event: CustomEvent) {
   const scrollTop = event.detail.scrollTop;
   const delta = scrollTop - lastScrollTop;
-  
+
   // Hide filter when scrolling down, show when scrolling up
   if (delta > 5 && scrollTop > 50) {
-    isFilterHidden.value = true;
+    isFilterVisible.value = false;
   } else if (delta < -5) {
-    isFilterHidden.value = false;
+    isFilterVisible.value = true;
   }
-  
+
   lastScrollTop = scrollTop;
-  
+
   // Show filter after scroll stops
   if (scrollTimeout) {
     clearTimeout(scrollTimeout);
   }
   scrollTimeout = setTimeout(() => {
-    isFilterHidden.value = false;
+    isFilterVisible.value = true;
   }, 1500);
 }
 
@@ -232,13 +209,12 @@ async function onToggleShowCompleted() {
   padding-top: calc(env(safe-area-inset-top) + 8px);
   margin-top: calc(-1 * env(safe-area-inset-top) - 16px);
   gap: 10px;
-  background-color: #ffffff;
+  background-color: var(--ion-background-color);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   .app-header {
-    background-color: #0c0c0e;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
@@ -263,7 +239,7 @@ async function onToggleShowCompleted() {
   .app-logo-light {
     display: none;
   }
-  
+
   .app-logo-dark {
     display: block;
   }
@@ -285,7 +261,7 @@ async function onToggleShowCompleted() {
   bottom: calc(70px + env(safe-area-inset-bottom));
   right: 16px;
   z-index: 99;
-  
+
   /* Button sizing */
   display: flex;
   align-items: center;
@@ -293,12 +269,15 @@ async function onToggleShowCompleted() {
   width: 66px;
   height: 66px;
   border: none;
-  border-radius: 33px;
+  border-radius: 50%;
   cursor: pointer;
-  
+
   /* Transitions */
-  transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease;
-  
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    background-color 0.2s ease;
+
   /* Liquid glass effect - Light mode */
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(20px);
@@ -332,7 +311,7 @@ async function onToggleShowCompleted() {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
-  
+
   .floating-completed-toggle:active {
     background: rgba(80, 80, 80, 0.8);
   }

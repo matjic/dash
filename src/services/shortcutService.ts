@@ -59,7 +59,7 @@ export function setupShortcutListener(router: Router): void {
 
   AppShortcuts.addListener('click', async (event) => {
     const shortcutId = event.shortcutId as ShortcutId;
-    
+
     switch (shortcutId) {
       case 'add-task':
         await router.push({ name: 'ItemDetail', params: { id: 'new' }, query: { type: 'task' } });
@@ -80,7 +80,7 @@ export function setupShortcutListener(router: Router): void {
 export async function handleDeepLink(url: string, router: Router): Promise<boolean> {
   try {
     const parsed = new URL(url);
-    
+
     if (parsed.protocol !== 'dash:') {
       return false;
     }
@@ -90,13 +90,13 @@ export async function handleDeepLink(url: string, router: Router): Promise<boole
 
     switch (action) {
       case 'add-task':
-        await router.push({ 
-          name: 'ItemDetail', 
-          params: { id: 'new' }, 
-          query: { type: 'task', title: params.title } 
+        await router.push({
+          name: 'ItemDetail',
+          params: { id: 'new' },
+          query: { type: 'task', title: params.title },
         });
         return true;
-      
+
       case 'timeline':
         await router.push({ name: 'Timeline', query: { filter: params.filter } });
         return true;
@@ -123,11 +123,11 @@ async function handleShareDeepLink(router: Router): Promise<void> {
   try {
     // Process shared content from the Share Extension
     const sharedData = await processPendingShares();
-    
+
     if (sharedData) {
       // Store the shared data for ItemDetail to consume
       setPendingSharedData(sharedData);
-      
+
       // Navigate to new item with shared flag
       await router.push({
         name: 'ItemDetail',

@@ -2,11 +2,9 @@
   <span class="rich-text">
     <template v-for="(segment, index) in segments" :key="index">
       <span v-if="segment.type === 'text'" class="text-segment">{{ segment.content }}</span>
-      <a
-        v-else
-        class="link-segment"
-        @click.prevent="onLinkClick(segment.url!)"
-      >{{ segment.content }}</a>
+      <a v-else class="link-segment" @click.prevent="onLinkClick(segment.url!)">{{
+        segment.content
+      }}</a>
     </template>
   </span>
 </template>

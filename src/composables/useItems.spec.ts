@@ -69,7 +69,7 @@ describe('useItems', () => {
     const { items, searchText, showCompleted, toggleShowCompleted } = useItems();
     items.value = [];
     searchText.value = '';
-    
+
     // Reset showCompleted to false if it's currently true
     if (showCompleted.value) {
       await toggleShowCompleted();
@@ -267,8 +267,20 @@ describe('useItems', () => {
       it('should sort by date within same category (ascending)', async () => {
         const { createItem, filteredItems } = useItems();
 
-        await createItem(createTestTask({ title: 'Later Task', isCompleted: false, dueDate: '2026-01-25T10:00:00.000Z' }));
-        await createItem(createTestTask({ title: 'Earlier Task', isCompleted: false, dueDate: '2026-01-20T10:00:00.000Z' }));
+        await createItem(
+          createTestTask({
+            title: 'Later Task',
+            isCompleted: false,
+            dueDate: '2026-01-25T10:00:00.000Z',
+          }),
+        );
+        await createItem(
+          createTestTask({
+            title: 'Earlier Task',
+            isCompleted: false,
+            dueDate: '2026-01-20T10:00:00.000Z',
+          }),
+        );
 
         await nextTick();
 
@@ -279,8 +291,16 @@ describe('useItems', () => {
       it('should handle items without dates', async () => {
         const { createItem, filteredItems } = useItems();
 
-        await createItem(createTestTask({ title: 'With Date', isCompleted: false, dueDate: '2026-01-20T10:00:00.000Z' }));
-        await createItem(createTestTask({ title: 'Without Date', isCompleted: false, dueDate: undefined }));
+        await createItem(
+          createTestTask({
+            title: 'With Date',
+            isCompleted: false,
+            dueDate: '2026-01-20T10:00:00.000Z',
+          }),
+        );
+        await createItem(
+          createTestTask({ title: 'Without Date', isCompleted: false, dueDate: undefined }),
+        );
 
         await nextTick();
 

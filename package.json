@@ -13,7 +13,11 @@
     "ios:run": "bun run build && bunx cap sync ios && bunx cap run ios --scheme Dash",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue,css,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,css,json}\""
   },
   "dependencies": {
     "@capacitor-community/date-picker": "^7.1.0",
@@ -41,14 +45,20 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.0.1",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.10.1",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/coverage-v8": "^4.0.17",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.8.0",
     "jsdom": "^27.4.0",
+    "prettier": "^3.8.1",
     "typescript": "~5.9.3",
+    "typescript-eslint": "^8.56.1",
     "vite": "^7.2.4",
     "vitest": "^4.0.17",
     "vue-tsc": "^3.1.4"
