@@ -26,6 +26,7 @@ dist-ssr
 # iOS
 ios/App/Pods
 ios/App/App/public
+ios/DerivedData/
 *.xcuserdata
 *.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 
