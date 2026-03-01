@@ -14,13 +14,6 @@
         :color="iconColor"
       />
 
-      <!-- Priority indicator -->
-      <div
-        v-if="item.priority !== 'none'"
-        class="priority-dot"
-        :class="`priority-${item.priority}`"
-        slot="start"
-      />
 
       <ion-label>
         <h2>{{ item.title }}</h2>
@@ -30,6 +23,14 @@
           {{ item.location }}
         </p>
       </ion-label>
+
+      <!-- Priority indicator -->
+      <div
+        v-if="item.priority !== 'none'"
+        class="priority-dot"
+        :class="`priority-${item.priority}`"
+        slot="end"
+      />
 
       <!-- Photo indicator -->
       <ion-icon
@@ -172,10 +173,10 @@ function onDelete() {
 
 <style scoped>
 .priority-dot {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-left: 4px;
 }
 
 .priority-dot.priority-low {
